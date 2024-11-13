@@ -1,0 +1,1464 @@
+(---------------------------------------------------------------------)
+(                                                                     )
+(    ARTWORK LOG                                                      )
+(                                                                     )
+(    Drawing          : 08_043758d.brd                                )
+(    Software Version : 17.2060                                       )
+(    Date/Time        : Fri Apr 03 00:37:54 2020                      )
+(                                                                     )
+(---------------------------------------------------------------------)
+
+
+ ---- Photoplot outline rectangle not found; using drawing extents.
+
+
+
+Results from parameter file ...
+    DEVICE-TYPE           GERBER_RS274X
+    OUTPUT-UNITS          INCHES
+    FILM-SIZE             3600000 2400000
+    FORMAT                2.5
+    ABORT-ON-ERROR        YES
+    SCALE                 1
+    SUPPRESS-LEAD-ZEROES  YES
+    SUPPRESS-TRAIL-ZEROES NO
+    SUPPRESS-EQUAL        YES
+    UNDEF-APT-CONT        NO
+
+
+================================================================
+     PROCESSING FILM < fab1 >
+     TO FILE < C:/tmp/20_043758d/worklib/02_043758d_top/physical/fab1.art > ...
+================================================================
+
+  FILM PARAMETERS :
+  ---------------------------------------------------------
+  Undefined line width                8.00 MIL
+  Suppress shape fill on neg film     NO
+  Mirror code                         NONE
+  Rotate angle                        NONE
+  Offset x:                           0.00
+  Offset y:                           0.00
+  Plot negative                       NO
+  Suppress unconnected internal pads  NO
+  Draw holes only                     NO
+
+    WARNING: 0 width line found at (-5400.00 1965.00) in MIL
+           ... using undefined line width of 8.00 MIL
+
+    WARNING: text composed 0 width line found at (-5200.00 -4500.00) in MIL
+           ... using undefined line width of 8.00 MIL
+
+    WARNING: Multiple 0 width lines; all will be treated the same as the first.
+           ... using undefined line width of 8.00 MIL
+
+    WARNING: text having Multiple 0 width lines; all will be treated the same as the first.
+           ... using undefined line width of 8.00 MIL
+
+
+
+  APERTURES USED (UNIT = IN):
+  ---------------------------------------------------------
+  TYPE       SIZE/NAME                   ROT   MIRROR MODE 
+  ---------------------------------------------------------
+  CIRCLE     0.00600                                  DARK 
+  CIRCLE     0.00800                                  DARK 
+
+     fab1 created with warnings
+
+
+================================================================
+     PROCESSING FILM < fab2 >
+     TO FILE < C:/tmp/20_043758d/worklib/02_043758d_top/physical/fab2.art > ...
+================================================================
+
+  FILM PARAMETERS :
+  ---------------------------------------------------------
+  Undefined line width                8.00 MIL
+  Suppress shape fill on neg film     NO
+  Mirror code                         NONE
+  Rotate angle                        NONE
+  Offset x:                           0.00
+  Offset y:                           0.00
+  Plot negative                       NO
+  Suppress unconnected internal pads  NO
+  Draw holes only                     NO
+
+
+
+  APERTURES USED (UNIT = IN):
+  ---------------------------------------------------------
+  TYPE       SIZE/NAME                   ROT   MIRROR MODE 
+  ---------------------------------------------------------
+  CIRCLE     0.00800                                  DARK 
+  CIRCLE     0.01200                                  DARK 
+  CIRCLE     0.02500                                  DARK 
+
+     fab2 created.
+
+
+================================================================
+     PROCESSING FILM < assy1 >
+     TO FILE < C:/tmp/20_043758d/worklib/02_043758d_top/physical/assy1.art > ...
+================================================================
+
+  FILM PARAMETERS :
+  ---------------------------------------------------------
+  Undefined line width                8.00 MIL
+  Suppress shape fill on neg film     NO
+  Mirror code                         NONE
+  Rotate angle                        NONE
+  Offset x:                           0.00
+  Offset y:                           0.00
+  Plot negative                       NO
+  Suppress unconnected internal pads  NO
+  Draw holes only                     NO
+
+
+
+  APERTURES USED (UNIT = IN):
+  ---------------------------------------------------------
+  TYPE       SIZE/NAME                   ROT   MIRROR MODE 
+  ---------------------------------------------------------
+  CIRCLE     0.00600                                  DARK 
+  CIRCLE     0.00800                                  DARK 
+
+     assy1 created.
+
+
+================================================================
+     PROCESSING FILM < assy2 >
+     TO FILE < C:/tmp/20_043758d/worklib/02_043758d_top/physical/assy2.art > ...
+================================================================
+
+  FILM PARAMETERS :
+  ---------------------------------------------------------
+  Undefined line width                8.00 MIL
+  Suppress shape fill on neg film     NO
+  Mirror code                         X
+  Rotate angle                        NONE
+  Offset x:                           0.00
+  Offset y:                           0.00
+  Plot negative                       NO
+  Suppress unconnected internal pads  NO
+  Draw holes only                     NO
+
+
+
+  APERTURES USED (UNIT = IN):
+  ---------------------------------------------------------
+  TYPE       SIZE/NAME                   ROT   MIRROR MODE 
+  ---------------------------------------------------------
+  CIRCLE     0.00600                                  DARK 
+  CIRCLE     0.00800                                  DARK 
+
+     assy2 created.
+
+
+================================================================
+     PROCESSING FILM < l1_primary >
+     TO FILE < C:/tmp/20_043758d/worklib/02_043758d_top/physical/l1_primary.art > ...
+================================================================
+
+  FILM PARAMETERS :
+  ---------------------------------------------------------
+  Undefined line width                8.00 MIL
+  Suppress shape fill on neg film     NO
+  Mirror code                         NONE
+  Rotate angle                        NONE
+  Offset x:                           0.00
+  Offset y:                           0.00
+  Plot negative                       NO
+  Suppress unconnected internal pads  NO
+  Draw holes only                     NO
+
+
+
+  APERTURES USED (UNIT = IN):
+  ---------------------------------------------------------
+  TYPE       SIZE/NAME                   ROT   MIRROR MODE 
+  ---------------------------------------------------------
+  CIRCLE     0.00400                                  DARK 
+  CIRCLE     0.00500                                  DARK 
+  CIRCLE     0.00600                                  DARK 
+  CIRCLE     0.00650                                  DARK 
+  CIRCLE     0.00700                                  DARK 
+  CIRCLE     0.00800                                  DARK 
+  CIRCLE     0.00900                                  DARK 
+  CIRCLE     0.01000                                  DARK 
+  CIRCLE     0.01200                                  DARK 
+  CIRCLE     0.01300                                  DARK 
+  CIRCLE     0.01400                                  DARK 
+  CIRCLE     0.01500                                  DARK 
+  CIRCLE     0.01550                                  DARK 
+  CIRCLE     0.01600                                  DARK 
+  CIRCLE     0.01900                                  DARK 
+  CIRCLE     0.02000                                  DARK 
+  CIRCLE     0.02500                                  DARK 
+  CIRCLE     0.03000                                  DARK 
+  CIRCLE     0.04000                                  DARK 
+  CIRCLE     0.04200                                  DARK 
+  CIRCLE     0.05000                                  DARK 
+  CIRCLE     0.06000                                  DARK 
+  CIRCLE     0.06500                                  DARK 
+  CIRCLE     0.07500                                  DARK 
+  SQUARE     0.02400                     0.000 NO     DARK 
+  SQUARE     0.04200                     0.000 NO     DARK 
+  SQUARE     0.08300                     0.000 NO     DARK 
+  SQUARE     0.09800                     0.000 NO     DARK 
+  SQUARE     0.12200                     0.000 NO     DARK 
+  SQUARE     0.13000                     0.000 NO     DARK 
+  RECTANGLE  0.01200     x 0.01200       0.000 NO     DARK 
+  RECTANGLE  0.01200     x 0.01200      90.000 NO     DARK 
+  RECTANGLE  0.01200     x 0.01600       0.000 NO     DARK 
+  RECTANGLE  0.01200     x 0.01600       0.084 NO     DARK 
+  RECTANGLE  0.01200     x 0.01600      90.000 NO     DARK 
+  RECTANGLE  0.01200     x 0.01600     109.360 NO     DARK 
+  RECTANGLE  0.01200     x 0.01600     110.237 NO     DARK 
+  RECTANGLE  0.01200     x 0.01600     138.393 NO     DARK 
+  RECTANGLE  0.01200     x 0.01600     138.985 NO     DARK 
+  RECTANGLE  0.01200     x 0.01600     150.000 NO     DARK 
+  RECTANGLE  0.01200     x 0.02000       0.000 NO     DARK 
+  RECTANGLE  0.01200     x 0.02600       0.000 NO     DARK 
+  RECTANGLE  0.01600     x 0.03500      90.000 NO     DARK 
+  RECTANGLE  0.01600     x 0.05300      90.000 NO     DARK 
+  RECTANGLE  0.01600     x 0.05500      90.000 NO     DARK 
+  RECTANGLE  0.02000     x 0.04300       0.000 NO     DARK 
+  RECTANGLE  0.02200     x 0.02000       0.000 NO     DARK 
+  RECTANGLE  0.02200     x 0.02000      90.000 NO     DARK 
+  RECTANGLE  0.02200     x 0.02400       0.000 NO     DARK 
+  RECTANGLE  0.02200     x 0.02400      90.000 NO     DARK 
+  RECTANGLE  0.02200     x 0.02400      90.064 NO     DARK 
+  RECTANGLE  0.02200     x 0.02800       0.000 NO     DARK 
+  RECTANGLE  0.03000     x 0.03500       0.000 NO     DARK 
+  RECTANGLE  0.03000     x 0.03500      90.000 NO     DARK 
+  RECTANGLE  0.03000     x 0.06500       0.000 NO     DARK 
+  RECTANGLE  0.03000     x 0.06500       6.313 NO     DARK 
+  RECTANGLE  0.03000     x 0.06500      60.000 NO     DARK 
+  RECTANGLE  0.03000     x 0.06500      90.000 NO     DARK 
+  RECTANGLE  0.03100     x 0.03000      90.000 NO     DARK 
+  RECTANGLE  0.03300     x 0.05100       0.000 NO     DARK 
+  RECTANGLE  0.03900     x 0.03700      90.000 NO     DARK 
+  RECTANGLE  0.03900     x 0.04300       0.000 NO     DARK 
+  RECTANGLE  0.03900     x 0.04300      90.000 NO     DARK 
+  RECTANGLE  0.04000     x 0.05500       0.000 NO     DARK 
+  RECTANGLE  0.04000     x 0.05500      90.000 NO     DARK 
+  RECTANGLE  0.04100     x 0.03900       0.000 NO     DARK 
+  RECTANGLE  0.04100     x 0.03900      90.000 NO     DARK 
+  RECTANGLE  0.04100     x 0.05500       0.000 NO     DARK 
+  RECTANGLE  0.04100     x 0.08700       0.000 NO     DARK 
+  RECTANGLE  0.04100     x 0.08700      90.000 NO     DARK 
+  RECTANGLE  0.04300     x 0.04700       0.000 NO     DARK 
+  RECTANGLE  0.04300     x 0.04700      90.000 NO     DARK 
+  RECTANGLE  0.04300     x 0.05900      48.644 NO     DARK 
+  RECTANGLE  0.04300     x 0.05900      48.813 NO     DARK 
+  RECTANGLE  0.04300     x 0.05900      90.000 NO     DARK 
+  RECTANGLE  0.04500     x 0.05700       0.000 NO     DARK 
+  RECTANGLE  0.04700     x 0.05700       0.000 NO     DARK 
+  RECTANGLE  0.04700     x 0.05700      90.000 NO     DARK 
+  RECTANGLE  0.05100     x 0.06300       0.000 NO     DARK 
+  RECTANGLE  0.05100     x 0.06300      90.000 NO     DARK 
+  RECTANGLE  0.05800     x 0.14500       0.000 NO     DARK 
+  RECTANGLE  0.05900     x 0.03500       0.000 NO     DARK 
+  RECTANGLE  0.06300     x 0.03900      90.000 NO     DARK 
+  RECTANGLE  0.06300     x 0.07900       0.000 NO     DARK 
+  RECTANGLE  0.06300     x 0.07900      90.000 NO     DARK 
+  RECTANGLE  0.07500     x 0.11400       0.000 NO     DARK 
+  RECTANGLE  0.17300     x 0.06500       0.000 NO     DARK 
+  RECTANGLE  0.20000     x 0.01900       0.000 NO     DARK 
+  RECTANGLE  0.20000     x 0.09500       0.000 NO     DARK 
+  OBLONG     0.00800     x 0.03000       0.000 NO     DARK 
+  OBLONG     0.01200     x 0.03400      90.000 NO     DARK 
+  OBLONG     0.01200     x 0.03500       0.000 NO     DARK 
+  OBLONG     0.01200     x 0.03500      90.000 NO     DARK 
+  OBLONG     0.01400     x 0.03900       0.000 NO     DARK 
+  OBLONG     0.01400     x 0.03900      90.000 NO     DARK 
+  OBLONG     0.01400     x 0.04100       0.000 NO     DARK 
+  OBLONG     0.01400     x 0.04100      90.000 NO     DARK 
+  OBLONG     0.04400     x 0.03600       0.000 NO     DARK 
+  FLASH SYM  CIR20                       0.000 NO     DARK 
+  FLASH SYM  CIR40                       0.000 NO     DARK 
+  FLASH SYM  CIR40                     180.000 NO     DARK 
+  PAD SHAPE  SH91X67                     0.000 NO     DARK 
+  PAD SHAPE  SH75X55                     0.000 NO     DARK 
+  PAD SHAPE  SH32X26                     0.000 NO     DARK 
+  PAD SHAPE  SH91X67-2                   0.000 NO     DARK 
+  PAD SHAPE  SH75X55                   180.000 NO     DARK 
+  PAD SHAPE  SH32X26                   180.000 NO     DARK 
+  PAD SHAPE  SH91X67-2                 180.000 NO     DARK 
+  PAD SHAPE  SH91X67                   180.000 NO     DARK 
+
+     l1_primary created.
+
+
+================================================================
+     PROCESSING FILM < l2_gnd >
+     TO FILE < C:/tmp/20_043758d/worklib/02_043758d_top/physical/l2_gnd.art > ...
+================================================================
+
+  FILM PARAMETERS :
+  ---------------------------------------------------------
+  Undefined line width                8.00 MIL
+  Suppress shape fill on neg film     NO
+  Mirror code                         NONE
+  Rotate angle                        NONE
+  Offset x:                           0.00
+  Offset y:                           0.00
+  Plot negative                       YES
+  Suppress unconnected internal pads  YES
+  Draw holes only                     NO
+
+    WARNING: No Photoplot Outline was found,
+negative shape outline will be determined by Board Outline
+
+
+  APERTURES USED (UNIT = IN):
+  ---------------------------------------------------------
+  TYPE       SIZE/NAME                   ROT   MIRROR MODE 
+  ---------------------------------------------------------
+  CIRCLE     0.00800                                  DARK 
+  CIRCLE     0.02200                                  CLEAR
+  CIRCLE     0.02500                                  CLEAR
+  CIRCLE     0.03000                                  CLEAR
+  CIRCLE     0.03500                                  CLEAR
+  CIRCLE     0.05000                                  DARK 
+  CIRCLE     0.06000                                  CLEAR
+  CIRCLE     0.06200                                  CLEAR
+  CIRCLE     0.06400                                  CLEAR
+  CIRCLE     0.08500                                  CLEAR
+  CIRCLE     0.09500                                  CLEAR
+  CIRCLE     0.10000                                  CLEAR
+  CIRCLE     0.14000                                  CLEAR
+  CIRCLE     0.17500                                  CLEAR
+  OBLONG     0.06400     x 0.05600       0.000 NO     CLEAR
+  OBLONG     0.09100     x 0.06400       0.000 NO     CLEAR
+  FLASH SYM  T604010X45SP4               0.000 YES    CLEAR
+  FLASH SYM  T957515X45SP4               0.000 YES    CLEAR
+  FLASH SYM  T856515X45SP4               0.000 YES    CLEAR
+  FLASH SYM  TDIRECT                     0.000 NO     CLEAR
+  FLASH SYM  T624210X45SP4               0.000 NO     CLEAR
+  FLASH SYM  TDIRECT                    45.000 NO     CLEAR
+  FLASH SYM  TDIRECT                    62.544 NO     CLEAR
+  FLASH SYM  TDIRECT                    76.034 NO     CLEAR
+  FLASH SYM  TDIRECT                    90.000 NO     CLEAR
+  FLASH SYM  TDIRECT                   103.557 NO     CLEAR
+  FLASH SYM  TDIRECT                   108.003 NO     CLEAR
+  FLASH SYM  TDIRECT                   118.645 NO     CLEAR
+  FLASH SYM  TDIRECT                   133.734 NO     CLEAR
+  FLASH SYM  TDIRECT                   148.822 NO     CLEAR
+  FLASH SYM  TDIRECT                   149.999 NO     CLEAR
+  FLASH SYM  TDIRECT                   163.910 NO     CLEAR
+  FLASH SYM  TDIRECT                   166.184 NO     CLEAR
+  FLASH SYM  TDIRECT                   178.998 NO     CLEAR
+  FLASH SYM  TDIRECT                   180.000 NO     CLEAR
+  FLASH SYM  TDIRECT                   269.999 NO     CLEAR
+  FLASH SYM  TDIRECT                   270.000 NO     CLEAR
+  FLASH SYM  TDIRECT                   305.829 NO     CLEAR
+  FLASH SYM  TDIRECT                   329.199 NO     CLEAR
+  FLASH SYM  TDIRECT                   330.000 NO     CLEAR
+  FLASH SYM  TDIRECT                   346.231 NO     CLEAR
+
+     l2_gnd created with warnings
+
+
+================================================================
+     PROCESSING FILM < l3_pwr >
+     TO FILE < C:/tmp/20_043758d/worklib/02_043758d_top/physical/l3_pwr.art > ...
+================================================================
+
+  FILM PARAMETERS :
+  ---------------------------------------------------------
+  Undefined line width                8.00 MIL
+  Suppress shape fill on neg film     NO
+  Mirror code                         NONE
+  Rotate angle                        NONE
+  Offset x:                           0.00
+  Offset y:                           0.00
+  Plot negative                       YES
+  Suppress unconnected internal pads  YES
+  Draw holes only                     NO
+
+    WARNING: No Photoplot Outline was found,
+negative shape outline will be determined by Board Outline
+
+
+  APERTURES USED (UNIT = IN):
+  ---------------------------------------------------------
+  TYPE       SIZE/NAME                   ROT   MIRROR MODE 
+  ---------------------------------------------------------
+  CIRCLE     0.00800                                  DARK 
+  CIRCLE     0.02200                                  CLEAR
+  CIRCLE     0.02500                                  CLEAR
+  CIRCLE     0.02700                                  CLEAR
+  CIRCLE     0.03000                                  CLEAR
+  CIRCLE     0.03500                                  CLEAR
+  CIRCLE     0.05000                                  DARK 
+  CIRCLE     0.06000                                  CLEAR
+  CIRCLE     0.06200                                  CLEAR
+  CIRCLE     0.06400                                  CLEAR
+  CIRCLE     0.08500                                  CLEAR
+  CIRCLE     0.09500                                  CLEAR
+  CIRCLE     0.10000                                  CLEAR
+  CIRCLE     0.14000                                  CLEAR
+  CIRCLE     0.17500                                  CLEAR
+  OBLONG     0.06400     x 0.05600       0.000 NO     CLEAR
+  OBLONG     0.09100     x 0.06400       0.000 NO     CLEAR
+  FLASH SYM  T604010X45SP4               0.000 YES    CLEAR
+  FLASH SYM  TDIRECT                     0.000 NO     CLEAR
+  FLASH SYM  T856515X45SP4               0.000 YES    CLEAR
+  FLASH SYM  TDIRECT                    45.000 NO     CLEAR
+  FLASH SYM  TDIRECT                    62.544 NO     CLEAR
+  FLASH SYM  TDIRECT                    76.034 NO     CLEAR
+  FLASH SYM  TDIRECT                    90.000 NO     CLEAR
+  FLASH SYM  TDIRECT                   103.557 NO     CLEAR
+  FLASH SYM  TDIRECT                   108.003 NO     CLEAR
+  FLASH SYM  TDIRECT                   118.645 NO     CLEAR
+  FLASH SYM  TDIRECT                   133.734 NO     CLEAR
+  FLASH SYM  TDIRECT                   148.822 NO     CLEAR
+  FLASH SYM  TDIRECT                   149.999 NO     CLEAR
+  FLASH SYM  TDIRECT                   163.910 NO     CLEAR
+  FLASH SYM  TDIRECT                   166.184 NO     CLEAR
+  FLASH SYM  TDIRECT                   178.998 NO     CLEAR
+  FLASH SYM  TDIRECT                   180.000 NO     CLEAR
+  FLASH SYM  TDIRECT                   269.999 NO     CLEAR
+  FLASH SYM  TDIRECT                   305.829 NO     CLEAR
+  FLASH SYM  TDIRECT                   329.199 NO     CLEAR
+  FLASH SYM  TDIRECT                   330.000 NO     CLEAR
+  FLASH SYM  TDIRECT                   346.231 NO     CLEAR
+
+     l3_pwr created with warnings
+
+
+================================================================
+     PROCESSING FILM < l4_gnd >
+     TO FILE < C:/tmp/20_043758d/worklib/02_043758d_top/physical/l4_gnd.art > ...
+================================================================
+
+  FILM PARAMETERS :
+  ---------------------------------------------------------
+  Undefined line width                8.00 MIL
+  Suppress shape fill on neg film     NO
+  Mirror code                         NONE
+  Rotate angle                        NONE
+  Offset x:                           0.00
+  Offset y:                           0.00
+  Plot negative                       YES
+  Suppress unconnected internal pads  YES
+  Draw holes only                     NO
+
+    WARNING: No Photoplot Outline was found,
+negative shape outline will be determined by Board Outline
+
+
+  APERTURES USED (UNIT = IN):
+  ---------------------------------------------------------
+  TYPE       SIZE/NAME                   ROT   MIRROR MODE 
+  ---------------------------------------------------------
+  CIRCLE     0.00800                                  DARK 
+  CIRCLE     0.02200                                  CLEAR
+  CIRCLE     0.02500                                  CLEAR
+  CIRCLE     0.03000                                  CLEAR
+  CIRCLE     0.03500                                  CLEAR
+  CIRCLE     0.05000                                  DARK 
+  CIRCLE     0.06000                                  CLEAR
+  CIRCLE     0.06200                                  CLEAR
+  CIRCLE     0.06400                                  CLEAR
+  CIRCLE     0.08500                                  CLEAR
+  CIRCLE     0.09500                                  CLEAR
+  CIRCLE     0.10000                                  CLEAR
+  CIRCLE     0.14000                                  CLEAR
+  CIRCLE     0.17500                                  CLEAR
+  OBLONG     0.06400     x 0.05600       0.000 NO     CLEAR
+  OBLONG     0.09100     x 0.06400       0.000 NO     CLEAR
+  FLASH SYM  T604010X45SP4               0.000 YES    CLEAR
+  FLASH SYM  T957515X45SP4               0.000 YES    CLEAR
+  FLASH SYM  T856515X45SP4               0.000 YES    CLEAR
+  FLASH SYM  TDIRECT                     0.000 NO     CLEAR
+  FLASH SYM  T624210X45SP4               0.000 NO     CLEAR
+  FLASH SYM  TDIRECT                    45.000 NO     CLEAR
+  FLASH SYM  TDIRECT                    62.544 NO     CLEAR
+  FLASH SYM  TDIRECT                    76.034 NO     CLEAR
+  FLASH SYM  TDIRECT                    90.000 NO     CLEAR
+  FLASH SYM  TDIRECT                   103.557 NO     CLEAR
+  FLASH SYM  TDIRECT                   108.003 NO     CLEAR
+  FLASH SYM  TDIRECT                   118.645 NO     CLEAR
+  FLASH SYM  TDIRECT                   133.734 NO     CLEAR
+  FLASH SYM  TDIRECT                   148.822 NO     CLEAR
+  FLASH SYM  TDIRECT                   149.999 NO     CLEAR
+  FLASH SYM  TDIRECT                   163.910 NO     CLEAR
+  FLASH SYM  TDIRECT                   166.184 NO     CLEAR
+  FLASH SYM  TDIRECT                   178.998 NO     CLEAR
+  FLASH SYM  TDIRECT                   180.000 NO     CLEAR
+  FLASH SYM  TDIRECT                   269.999 NO     CLEAR
+  FLASH SYM  TDIRECT                   270.000 NO     CLEAR
+  FLASH SYM  TDIRECT                   305.829 NO     CLEAR
+  FLASH SYM  TDIRECT                   329.199 NO     CLEAR
+  FLASH SYM  TDIRECT                   330.000 NO     CLEAR
+  FLASH SYM  TDIRECT                   346.231 NO     CLEAR
+
+     l4_gnd created with warnings
+
+
+================================================================
+     PROCESSING FILM < l5_sig >
+     TO FILE < C:/tmp/20_043758d/worklib/02_043758d_top/physical/l5_sig.art > ...
+================================================================
+
+  FILM PARAMETERS :
+  ---------------------------------------------------------
+  Undefined line width                8.00 MIL
+  Suppress shape fill on neg film     NO
+  Mirror code                         NONE
+  Rotate angle                        NONE
+  Offset x:                           0.00
+  Offset y:                           0.00
+  Plot negative                       NO
+  Suppress unconnected internal pads  YES
+  Draw holes only                     NO
+
+
+
+  APERTURES USED (UNIT = IN):
+  ---------------------------------------------------------
+  TYPE       SIZE/NAME                   ROT   MIRROR MODE 
+  ---------------------------------------------------------
+  CIRCLE     0.00400                                  DARK 
+  CIRCLE     0.00450                                  DARK 
+  CIRCLE     0.00500                                  DARK 
+  CIRCLE     0.00550                                  DARK 
+  CIRCLE     0.00650                                  DARK 
+  CIRCLE     0.00800                                  DARK 
+  CIRCLE     0.01200                                  DARK 
+  CIRCLE     0.01600                                  DARK 
+  CIRCLE     0.02000                                  DARK 
+  CIRCLE     0.04000                                  DARK 
+  CIRCLE     0.04200                                  DARK 
+  CIRCLE     0.05000                                  DARK 
+  CIRCLE     0.06500                                  DARK 
+  CIRCLE     0.07500                                  DARK 
+
+     l5_sig created.
+
+
+================================================================
+     PROCESSING FILM < l6_sig >
+     TO FILE < C:/tmp/20_043758d/worklib/02_043758d_top/physical/l6_sig.art > ...
+================================================================
+
+  FILM PARAMETERS :
+  ---------------------------------------------------------
+  Undefined line width                8.00 MIL
+  Suppress shape fill on neg film     NO
+  Mirror code                         NONE
+  Rotate angle                        NONE
+  Offset x:                           0.00
+  Offset y:                           0.00
+  Plot negative                       NO
+  Suppress unconnected internal pads  YES
+  Draw holes only                     NO
+
+
+
+  APERTURES USED (UNIT = IN):
+  ---------------------------------------------------------
+  TYPE       SIZE/NAME                   ROT   MIRROR MODE 
+  ---------------------------------------------------------
+  CIRCLE     0.00400                                  DARK 
+  CIRCLE     0.00450                                  DARK 
+  CIRCLE     0.00500                                  DARK 
+  CIRCLE     0.00550                                  DARK 
+  CIRCLE     0.00650                                  DARK 
+  CIRCLE     0.00800                                  DARK 
+  CIRCLE     0.01200                                  DARK 
+  CIRCLE     0.01600                                  DARK 
+  CIRCLE     0.02000                                  DARK 
+  CIRCLE     0.04000                                  DARK 
+  CIRCLE     0.04200                                  DARK 
+  CIRCLE     0.05000                                  DARK 
+  CIRCLE     0.06500                                  DARK 
+  CIRCLE     0.07500                                  DARK 
+
+     l6_sig created.
+
+
+================================================================
+     PROCESSING FILM < l7_gnd >
+     TO FILE < C:/tmp/20_043758d/worklib/02_043758d_top/physical/l7_gnd.art > ...
+================================================================
+
+  FILM PARAMETERS :
+  ---------------------------------------------------------
+  Undefined line width                8.00 MIL
+  Suppress shape fill on neg film     NO
+  Mirror code                         NONE
+  Rotate angle                        NONE
+  Offset x:                           0.00
+  Offset y:                           0.00
+  Plot negative                       YES
+  Suppress unconnected internal pads  YES
+  Draw holes only                     NO
+
+    WARNING: No Photoplot Outline was found,
+negative shape outline will be determined by Board Outline
+
+
+  APERTURES USED (UNIT = IN):
+  ---------------------------------------------------------
+  TYPE       SIZE/NAME                   ROT   MIRROR MODE 
+  ---------------------------------------------------------
+  CIRCLE     0.00800                                  DARK 
+  CIRCLE     0.02200                                  CLEAR
+  CIRCLE     0.02500                                  CLEAR
+  CIRCLE     0.03000                                  CLEAR
+  CIRCLE     0.03500                                  CLEAR
+  CIRCLE     0.05000                                  DARK 
+  CIRCLE     0.06000                                  CLEAR
+  CIRCLE     0.06200                                  CLEAR
+  CIRCLE     0.06400                                  CLEAR
+  CIRCLE     0.08500                                  CLEAR
+  CIRCLE     0.09500                                  CLEAR
+  CIRCLE     0.10000                                  CLEAR
+  CIRCLE     0.14000                                  CLEAR
+  CIRCLE     0.17500                                  CLEAR
+  OBLONG     0.06400     x 0.05600       0.000 NO     CLEAR
+  OBLONG     0.09100     x 0.06400       0.000 NO     CLEAR
+  FLASH SYM  T604010X45SP4               0.000 YES    CLEAR
+  FLASH SYM  T957515X45SP4               0.000 YES    CLEAR
+  FLASH SYM  T856515X45SP4               0.000 YES    CLEAR
+  FLASH SYM  TDIRECT                     0.000 NO     CLEAR
+  FLASH SYM  T624210X45SP4               0.000 NO     CLEAR
+  FLASH SYM  TDIRECT                    45.000 NO     CLEAR
+  FLASH SYM  TDIRECT                    62.544 NO     CLEAR
+  FLASH SYM  TDIRECT                    76.034 NO     CLEAR
+  FLASH SYM  TDIRECT                    90.000 NO     CLEAR
+  FLASH SYM  TDIRECT                   103.557 NO     CLEAR
+  FLASH SYM  TDIRECT                   108.003 NO     CLEAR
+  FLASH SYM  TDIRECT                   118.645 NO     CLEAR
+  FLASH SYM  TDIRECT                   133.734 NO     CLEAR
+  FLASH SYM  TDIRECT                   148.822 NO     CLEAR
+  FLASH SYM  TDIRECT                   149.999 NO     CLEAR
+  FLASH SYM  TDIRECT                   163.910 NO     CLEAR
+  FLASH SYM  TDIRECT                   166.184 NO     CLEAR
+  FLASH SYM  TDIRECT                   178.998 NO     CLEAR
+  FLASH SYM  TDIRECT                   180.000 NO     CLEAR
+  FLASH SYM  TDIRECT                   269.999 NO     CLEAR
+  FLASH SYM  TDIRECT                   270.000 NO     CLEAR
+  FLASH SYM  TDIRECT                   305.829 NO     CLEAR
+  FLASH SYM  TDIRECT                   329.199 NO     CLEAR
+  FLASH SYM  TDIRECT                   330.000 NO     CLEAR
+  FLASH SYM  TDIRECT                   346.231 NO     CLEAR
+
+     l7_gnd created with warnings
+
+
+================================================================
+     PROCESSING FILM < l8_pwr >
+     TO FILE < C:/tmp/20_043758d/worklib/02_043758d_top/physical/l8_pwr.art > ...
+================================================================
+
+  FILM PARAMETERS :
+  ---------------------------------------------------------
+  Undefined line width                8.00 MIL
+  Suppress shape fill on neg film     NO
+  Mirror code                         NONE
+  Rotate angle                        NONE
+  Offset x:                           0.00
+  Offset y:                           0.00
+  Plot negative                       YES
+  Suppress unconnected internal pads  YES
+  Draw holes only                     NO
+
+    WARNING: No Photoplot Outline was found,
+negative shape outline will be determined by Board Outline
+
+
+  APERTURES USED (UNIT = IN):
+  ---------------------------------------------------------
+  TYPE       SIZE/NAME                   ROT   MIRROR MODE 
+  ---------------------------------------------------------
+  CIRCLE     0.00800                                  DARK 
+  CIRCLE     0.02200                                  CLEAR
+  CIRCLE     0.02500                                  CLEAR
+  CIRCLE     0.02700                                  CLEAR
+  CIRCLE     0.03000                                  CLEAR
+  CIRCLE     0.03500                                  CLEAR
+  CIRCLE     0.05000                                  DARK 
+  CIRCLE     0.06000                                  CLEAR
+  CIRCLE     0.06200                                  CLEAR
+  CIRCLE     0.06400                                  CLEAR
+  CIRCLE     0.08500                                  CLEAR
+  CIRCLE     0.09500                                  CLEAR
+  CIRCLE     0.10000                                  CLEAR
+  CIRCLE     0.14000                                  CLEAR
+  CIRCLE     0.17500                                  CLEAR
+  OBLONG     0.06400     x 0.05600       0.000 NO     CLEAR
+  OBLONG     0.09100     x 0.06400       0.000 NO     CLEAR
+  FLASH SYM  T604010X45SP4               0.000 YES    CLEAR
+  FLASH SYM  T624210X45SP4               0.000 NO     CLEAR
+  FLASH SYM  TDIRECT                     0.000 NO     CLEAR
+  FLASH SYM  T957515X45SP4               0.000 YES    CLEAR
+  FLASH SYM  TDIRECT                    76.034 NO     CLEAR
+  FLASH SYM  TDIRECT                    90.000 NO     CLEAR
+  FLASH SYM  TDIRECT                   133.734 NO     CLEAR
+  FLASH SYM  TDIRECT                   148.822 NO     CLEAR
+  FLASH SYM  TDIRECT                   163.910 NO     CLEAR
+  FLASH SYM  TDIRECT                   178.998 NO     CLEAR
+  FLASH SYM  TDIRECT                   180.000 NO     CLEAR
+  FLASH SYM  TDIRECT                   269.999 NO     CLEAR
+  FLASH SYM  TDIRECT                   270.000 NO     CLEAR
+  FLASH SYM  TDIRECT                   305.829 NO     CLEAR
+  FLASH SYM  TDIRECT                   330.000 NO     CLEAR
+
+     l8_pwr created with warnings
+
+
+================================================================
+     PROCESSING FILM < l9_gnd >
+     TO FILE < C:/tmp/20_043758d/worklib/02_043758d_top/physical/l9_gnd.art > ...
+================================================================
+
+  FILM PARAMETERS :
+  ---------------------------------------------------------
+  Undefined line width                8.00 MIL
+  Suppress shape fill on neg film     NO
+  Mirror code                         NONE
+  Rotate angle                        NONE
+  Offset x:                           0.00
+  Offset y:                           0.00
+  Plot negative                       YES
+  Suppress unconnected internal pads  YES
+  Draw holes only                     NO
+
+    WARNING: No Photoplot Outline was found,
+negative shape outline will be determined by Board Outline
+
+
+  APERTURES USED (UNIT = IN):
+  ---------------------------------------------------------
+  TYPE       SIZE/NAME                   ROT   MIRROR MODE 
+  ---------------------------------------------------------
+  CIRCLE     0.00800                                  DARK 
+  CIRCLE     0.02200                                  CLEAR
+  CIRCLE     0.02500                                  CLEAR
+  CIRCLE     0.03000                                  CLEAR
+  CIRCLE     0.03500                                  CLEAR
+  CIRCLE     0.05000                                  DARK 
+  CIRCLE     0.06000                                  CLEAR
+  CIRCLE     0.06200                                  CLEAR
+  CIRCLE     0.06400                                  CLEAR
+  CIRCLE     0.08500                                  CLEAR
+  CIRCLE     0.09500                                  CLEAR
+  CIRCLE     0.10000                                  CLEAR
+  CIRCLE     0.14000                                  CLEAR
+  CIRCLE     0.17500                                  CLEAR
+  OBLONG     0.06400     x 0.05600       0.000 NO     CLEAR
+  OBLONG     0.09100     x 0.06400       0.000 NO     CLEAR
+  FLASH SYM  T604010X45SP4               0.000 YES    CLEAR
+  FLASH SYM  T957515X45SP4               0.000 YES    CLEAR
+  FLASH SYM  T856515X45SP4               0.000 YES    CLEAR
+  FLASH SYM  TDIRECT                     0.000 NO     CLEAR
+  FLASH SYM  T624210X45SP4               0.000 NO     CLEAR
+  FLASH SYM  TDIRECT                    45.000 NO     CLEAR
+  FLASH SYM  TDIRECT                    62.544 NO     CLEAR
+  FLASH SYM  TDIRECT                    76.034 NO     CLEAR
+  FLASH SYM  TDIRECT                    90.000 NO     CLEAR
+  FLASH SYM  TDIRECT                   103.557 NO     CLEAR
+  FLASH SYM  TDIRECT                   108.003 NO     CLEAR
+  FLASH SYM  TDIRECT                   118.645 NO     CLEAR
+  FLASH SYM  TDIRECT                   133.734 NO     CLEAR
+  FLASH SYM  TDIRECT                   148.822 NO     CLEAR
+  FLASH SYM  TDIRECT                   149.999 NO     CLEAR
+  FLASH SYM  TDIRECT                   163.910 NO     CLEAR
+  FLASH SYM  TDIRECT                   166.184 NO     CLEAR
+  FLASH SYM  TDIRECT                   178.998 NO     CLEAR
+  FLASH SYM  TDIRECT                   180.000 NO     CLEAR
+  FLASH SYM  TDIRECT                   269.999 NO     CLEAR
+  FLASH SYM  TDIRECT                   270.000 NO     CLEAR
+  FLASH SYM  TDIRECT                   305.829 NO     CLEAR
+  FLASH SYM  TDIRECT                   329.199 NO     CLEAR
+  FLASH SYM  TDIRECT                   330.000 NO     CLEAR
+  FLASH SYM  TDIRECT                   346.231 NO     CLEAR
+
+     l9_gnd created with warnings
+
+
+================================================================
+     PROCESSING FILM < l10_secondary >
+     TO FILE < C:/tmp/20_043758d/worklib/02_043758d_top/physical/l10_secondary.art > ...
+================================================================
+
+  FILM PARAMETERS :
+  ---------------------------------------------------------
+  Undefined line width                8.00 MIL
+  Suppress shape fill on neg film     NO
+  Mirror code                         NONE
+  Rotate angle                        NONE
+  Offset x:                           0.00
+  Offset y:                           0.00
+  Plot negative                       NO
+  Suppress unconnected internal pads  NO
+  Draw holes only                     NO
+
+
+
+  APERTURES USED (UNIT = IN):
+  ---------------------------------------------------------
+  TYPE       SIZE/NAME                   ROT   MIRROR MODE 
+  ---------------------------------------------------------
+  CIRCLE     0.00400                                  DARK 
+  CIRCLE     0.00500                                  DARK 
+  CIRCLE     0.00600                                  DARK 
+  CIRCLE     0.00650                                  DARK 
+  CIRCLE     0.00800                                  DARK 
+  CIRCLE     0.01000                                  DARK 
+  CIRCLE     0.01200                                  DARK 
+  CIRCLE     0.01500                                  DARK 
+  CIRCLE     0.01600                                  DARK 
+  CIRCLE     0.02000                                  DARK 
+  CIRCLE     0.02500                                  DARK 
+  CIRCLE     0.03000                                  DARK 
+  CIRCLE     0.04000                                  DARK 
+  CIRCLE     0.04200                                  DARK 
+  CIRCLE     0.05000                                  DARK 
+  CIRCLE     0.06500                                  DARK 
+  CIRCLE     0.07500                                  DARK 
+  SQUARE     0.02400                     0.000 NO     DARK 
+  SQUARE     0.02400                    89.918 NO     DARK 
+  SQUARE     0.04200                     0.000 NO     DARK 
+  SQUARE     0.08300                     0.000 NO     DARK 
+  SQUARE     0.08300                    89.824 NO     DARK 
+  RECTANGLE  0.01200     x 0.01600       0.000 NO     DARK 
+  RECTANGLE  0.01200     x 0.01600      89.824 NO     DARK 
+  RECTANGLE  0.01200     x 0.01600      90.000 NO     DARK 
+  RECTANGLE  0.01200     x 0.01600     179.824 NO     DARK 
+  RECTANGLE  0.01300     x 0.03700       0.000 NO     DARK 
+  RECTANGLE  0.02100     x 0.02500      90.000 NO     DARK 
+  RECTANGLE  0.02200     x 0.02000       0.000 NO     DARK 
+  RECTANGLE  0.02200     x 0.02000      90.000 NO     DARK 
+  RECTANGLE  0.02200     x 0.02400       0.000 NO     DARK 
+  RECTANGLE  0.02200     x 0.02400      90.000 NO     DARK 
+  RECTANGLE  0.02300     x 0.02600      90.000 NO     DARK 
+  RECTANGLE  0.02800     x 0.03600       0.000 NO     DARK 
+  RECTANGLE  0.03000     x 0.03500       0.000 NO     DARK 
+  RECTANGLE  0.03000     x 0.03500     179.824 NO     DARK 
+  RECTANGLE  0.03500     x 0.03200      90.000 NO     DARK 
+  RECTANGLE  0.04000     x 0.05500       0.000 NO     DARK 
+  RECTANGLE  0.04300     x 0.04700       0.000 NO     DARK 
+  RECTANGLE  0.04300     x 0.04700      89.824 NO     DARK 
+  RECTANGLE  0.04300     x 0.04700      90.000 NO     DARK 
+  RECTANGLE  0.04300     x 0.04700     138.841 NO     DARK 
+  RECTANGLE  0.04700     x 0.05700       0.000 NO     DARK 
+  RECTANGLE  0.04700     x 0.05700      90.000 NO     DARK 
+  RECTANGLE  0.05100     x 0.06300       0.000 NO     DARK 
+  RECTANGLE  0.05100     x 0.06300      90.000 NO     DARK 
+  RECTANGLE  0.05500     x 0.04700      90.000 NO     DARK 
+  RECTANGLE  0.06300     x 0.03900      90.000 NO     DARK 
+  RECTANGLE  0.06300     x 0.07900       0.000 NO     DARK 
+  RECTANGLE  0.20000     x 0.09500       0.000 NO     DARK 
+  OBLONG     0.01200     x 0.03400      90.000 NO     DARK 
+  OBLONG     0.01400     x 0.04100       0.000 NO     DARK 
+  OBLONG     0.01400     x 0.04100      89.824 NO     DARK 
+  OBLONG     0.01400     x 0.04100      90.000 NO     DARK 
+  OBLONG     0.01400     x 0.04100     179.824 NO     DARK 
+  OBLONG     0.04400     x 0.03600       0.000 NO     DARK 
+  OBLONG     0.07100     x 0.04400       0.000 NO     DARK 
+  FLASH SYM  CIR40                       0.000 NO     DARK 
+  FLASH SYM  CIR20                       0.000 NO     DARK 
+  FLASH SYM  CIR40                     180.000 NO     DARK 
+
+     l10_secondary created.
+
+
+================================================================
+     PROCESSING FILM < silk_prm >
+     TO FILE < C:/tmp/20_043758d/worklib/02_043758d_top/physical/silk_prm.art > ...
+================================================================
+
+  FILM PARAMETERS :
+  ---------------------------------------------------------
+  Undefined line width                8.00 MIL
+  Suppress shape fill on neg film     NO
+  Mirror code                         NONE
+  Rotate angle                        NONE
+  Offset x:                           0.00
+  Offset y:                           0.00
+  Plot negative                       NO
+  Suppress unconnected internal pads  NO
+  Draw holes only                     NO
+
+
+
+  APERTURES USED (UNIT = IN):
+  ---------------------------------------------------------
+  TYPE       SIZE/NAME                   ROT   MIRROR MODE 
+  ---------------------------------------------------------
+  CIRCLE     0.00200                                  DARK 
+  CIRCLE     0.00500                                  DARK 
+  CIRCLE     0.00600                                  DARK 
+  CIRCLE     0.00800                                  DARK 
+  CIRCLE     0.01000                                  DARK 
+  CIRCLE     0.01200                                  DARK 
+  CIRCLE     0.05000                                  DARK 
+
+     silk_prm created.
+
+
+================================================================
+     PROCESSING FILM < mask_prm >
+     TO FILE < C:/tmp/20_043758d/worklib/02_043758d_top/physical/mask_prm.art > ...
+================================================================
+
+  FILM PARAMETERS :
+  ---------------------------------------------------------
+  Undefined line width                8.00 MIL
+  Suppress shape fill on neg film     NO
+  Mirror code                         NONE
+  Rotate angle                        NONE
+  Offset x:                           0.00
+  Offset y:                           0.00
+  Plot negative                       NO
+  Suppress unconnected internal pads  NO
+  Draw holes only                     NO
+
+
+
+  APERTURES USED (UNIT = IN):
+  ---------------------------------------------------------
+  TYPE       SIZE/NAME                   ROT   MIRROR MODE 
+  ---------------------------------------------------------
+  CIRCLE     0.00800                                  DARK 
+  CIRCLE     0.01500                                  DARK 
+  CIRCLE     0.01700                                  DARK 
+  CIRCLE     0.01800                                  DARK 
+  CIRCLE     0.01900                                  DARK 
+  CIRCLE     0.02000                                  DARK 
+  CIRCLE     0.03500                                  DARK 
+  CIRCLE     0.04000                                  DARK 
+  CIRCLE     0.04500                                  DARK 
+  CIRCLE     0.04700                                  DARK 
+  CIRCLE     0.05000                                  DARK 
+  CIRCLE     0.06500                                  DARK 
+  CIRCLE     0.07000                                  DARK 
+  CIRCLE     0.08000                                  DARK 
+  CIRCLE     0.11000                                  DARK 
+  CIRCLE     0.14500                                  DARK 
+  SQUARE     0.02900                     0.000 NO     DARK 
+  SQUARE     0.04700                     0.000 NO     DARK 
+  SQUARE     0.08700                     0.000 NO     DARK 
+  SQUARE     0.10200                     0.000 NO     DARK 
+  SQUARE     0.12600                     0.000 NO     DARK 
+  SQUARE     0.13400                     0.000 NO     DARK 
+  RECTANGLE  0.01400     x 0.03000       0.000 NO     DARK 
+  RECTANGLE  0.01700     x 0.01700       0.000 NO     DARK 
+  RECTANGLE  0.01700     x 0.01700      90.000 NO     DARK 
+  RECTANGLE  0.01700     x 0.02100       0.000 NO     DARK 
+  RECTANGLE  0.01700     x 0.02100       0.084 NO     DARK 
+  RECTANGLE  0.01700     x 0.02100      90.000 NO     DARK 
+  RECTANGLE  0.01700     x 0.02100     109.360 NO     DARK 
+  RECTANGLE  0.01700     x 0.02100     110.237 NO     DARK 
+  RECTANGLE  0.01700     x 0.02100     138.393 NO     DARK 
+  RECTANGLE  0.01700     x 0.02100     138.985 NO     DARK 
+  RECTANGLE  0.01700     x 0.02100     150.000 NO     DARK 
+  RECTANGLE  0.01700     x 0.02500       0.000 NO     DARK 
+  RECTANGLE  0.02100     x 0.04000      90.000 NO     DARK 
+  RECTANGLE  0.02100     x 0.05800      90.000 NO     DARK 
+  RECTANGLE  0.02100     x 0.06000      90.000 NO     DARK 
+  RECTANGLE  0.02500     x 0.04800       0.000 NO     DARK 
+  RECTANGLE  0.02700     x 0.02500       0.000 NO     DARK 
+  RECTANGLE  0.02700     x 0.02500      90.000 NO     DARK 
+  RECTANGLE  0.02700     x 0.02900       0.000 NO     DARK 
+  RECTANGLE  0.02700     x 0.02900      90.000 NO     DARK 
+  RECTANGLE  0.02700     x 0.02900      90.064 NO     DARK 
+  RECTANGLE  0.02700     x 0.03300       0.000 NO     DARK 
+  RECTANGLE  0.03500     x 0.04000       0.000 NO     DARK 
+  RECTANGLE  0.03500     x 0.04000      90.000 NO     DARK 
+  RECTANGLE  0.03500     x 0.07000       0.000 NO     DARK 
+  RECTANGLE  0.03500     x 0.07000       6.313 NO     DARK 
+  RECTANGLE  0.03500     x 0.07000      60.000 NO     DARK 
+  RECTANGLE  0.03500     x 0.07000      90.000 NO     DARK 
+  RECTANGLE  0.03600     x 0.03500      90.000 NO     DARK 
+  RECTANGLE  0.03800     x 0.05600       0.000 NO     DARK 
+  RECTANGLE  0.04400     x 0.04200      90.000 NO     DARK 
+  RECTANGLE  0.04400     x 0.04800       0.000 NO     DARK 
+  RECTANGLE  0.04400     x 0.04800      90.000 NO     DARK 
+  RECTANGLE  0.04500     x 0.06000       0.000 NO     DARK 
+  RECTANGLE  0.04500     x 0.06000      90.000 NO     DARK 
+  RECTANGLE  0.04600     x 0.04400       0.000 NO     DARK 
+  RECTANGLE  0.04600     x 0.04400      90.000 NO     DARK 
+  RECTANGLE  0.04600     x 0.06000       0.000 NO     DARK 
+  RECTANGLE  0.04600     x 0.09200       0.000 NO     DARK 
+  RECTANGLE  0.04600     x 0.09200      90.000 NO     DARK 
+  RECTANGLE  0.04800     x 0.05200       0.000 NO     DARK 
+  RECTANGLE  0.04800     x 0.05200      90.000 NO     DARK 
+  RECTANGLE  0.04800     x 0.06400      48.644 NO     DARK 
+  RECTANGLE  0.04800     x 0.06400      48.813 NO     DARK 
+  RECTANGLE  0.04800     x 0.06400      90.000 NO     DARK 
+  RECTANGLE  0.05000     x 0.06200       0.000 NO     DARK 
+  RECTANGLE  0.05200     x 0.06200       0.000 NO     DARK 
+  RECTANGLE  0.05200     x 0.06200      90.000 NO     DARK 
+  RECTANGLE  0.05600     x 0.06800       0.000 NO     DARK 
+  RECTANGLE  0.05600     x 0.06800      90.000 NO     DARK 
+  RECTANGLE  0.06300     x 0.03800       0.000 NO     DARK 
+  RECTANGLE  0.06300     x 0.15000       0.000 NO     DARK 
+  RECTANGLE  0.06700     x 0.04200      90.000 NO     DARK 
+  RECTANGLE  0.06800     x 0.08400       0.000 NO     DARK 
+  RECTANGLE  0.06800     x 0.08400      90.000 NO     DARK 
+  RECTANGLE  0.08000     x 0.11900       0.000 NO     DARK 
+  RECTANGLE  0.17700     x 0.06900       0.000 NO     DARK 
+  RECTANGLE  0.20500     x 0.02400       0.000 NO     DARK 
+  RECTANGLE  0.20500     x 0.10000       0.000 NO     DARK 
+  OBLONG     0.01000     x 0.03400       0.000 NO     DARK 
+  OBLONG     0.01400     x 0.03900       0.000 NO     DARK 
+  OBLONG     0.01400     x 0.03900      90.000 NO     DARK 
+  OBLONG     0.01600     x 0.03700      90.000 NO     DARK 
+  OBLONG     0.01800     x 0.04300       0.000 NO     DARK 
+  OBLONG     0.01800     x 0.04300      90.000 NO     DARK 
+  OBLONG     0.01800     x 0.04500       0.000 NO     DARK 
+  OBLONG     0.01800     x 0.04500      90.000 NO     DARK 
+  OBLONG     0.04900     x 0.04100       0.000 NO     DARK 
+  PAD SHAPE  SH75X55_SM                  0.000 NO     DARK 
+  PAD SHAPE  SH91X67-2_SM                0.000 NO     DARK 
+  PAD SHAPE  SH32X26_SM                  0.000 NO     DARK 
+  PAD SHAPE  SH91X67_SM                  0.000 NO     DARK 
+  PAD SHAPE  SH91X67_SM                180.000 NO     DARK 
+  PAD SHAPE  SH32X26_SM                180.000 NO     DARK 
+  PAD SHAPE  SH91X67-2_SM              180.000 NO     DARK 
+  PAD SHAPE  SH75X55_SM                180.000 NO     DARK 
+
+     mask_prm created.
+
+
+================================================================
+     PROCESSING FILM < silk_sec >
+     TO FILE < C:/tmp/20_043758d/worklib/02_043758d_top/physical/silk_sec.art > ...
+================================================================
+
+  FILM PARAMETERS :
+  ---------------------------------------------------------
+  Undefined line width                8.00 MIL
+  Suppress shape fill on neg film     NO
+  Mirror code                         NONE
+  Rotate angle                        NONE
+  Offset x:                           0.00
+  Offset y:                           0.00
+  Plot negative                       NO
+  Suppress unconnected internal pads  NO
+  Draw holes only                     NO
+
+
+
+  APERTURES USED (UNIT = IN):
+  ---------------------------------------------------------
+  TYPE       SIZE/NAME                   ROT   MIRROR MODE 
+  ---------------------------------------------------------
+  CIRCLE     0.00400                                  DARK 
+  CIRCLE     0.00500                                  DARK 
+  CIRCLE     0.00600                                  DARK 
+  CIRCLE     0.00800                                  DARK 
+  CIRCLE     0.05000                                  DARK 
+  CIRCLE     0.06000                                  DARK 
+
+     silk_sec created.
+
+
+================================================================
+     PROCESSING FILM < mask_sec >
+     TO FILE < C:/tmp/20_043758d/worklib/02_043758d_top/physical/mask_sec.art > ...
+================================================================
+
+  FILM PARAMETERS :
+  ---------------------------------------------------------
+  Undefined line width                8.00 MIL
+  Suppress shape fill on neg film     NO
+  Mirror code                         NONE
+  Rotate angle                        NONE
+  Offset x:                           0.00
+  Offset y:                           0.00
+  Plot negative                       NO
+  Suppress unconnected internal pads  NO
+  Draw holes only                     NO
+
+
+
+  APERTURES USED (UNIT = IN):
+  ---------------------------------------------------------
+  TYPE       SIZE/NAME                   ROT   MIRROR MODE 
+  ---------------------------------------------------------
+  CIRCLE     0.00800                                  DARK 
+  CIRCLE     0.01400                                  DARK 
+  CIRCLE     0.03500                                  DARK 
+  CIRCLE     0.04000                                  DARK 
+  CIRCLE     0.04500                                  DARK 
+  CIRCLE     0.04700                                  DARK 
+  CIRCLE     0.05000                                  DARK 
+  CIRCLE     0.06500                                  DARK 
+  CIRCLE     0.07000                                  DARK 
+  CIRCLE     0.08000                                  DARK 
+  CIRCLE     0.11000                                  DARK 
+  CIRCLE     0.14500                                  DARK 
+  SQUARE     0.02900                     0.000 NO     DARK 
+  SQUARE     0.02900                    89.918 NO     DARK 
+  SQUARE     0.04700                     0.000 NO     DARK 
+  SQUARE     0.08700                     0.000 NO     DARK 
+  SQUARE     0.08700                    89.824 NO     DARK 
+  RECTANGLE  0.01700     x 0.02100       0.000 NO     DARK 
+  RECTANGLE  0.01700     x 0.02100      89.824 NO     DARK 
+  RECTANGLE  0.01700     x 0.02100      90.000 NO     DARK 
+  RECTANGLE  0.01700     x 0.02100     179.824 NO     DARK 
+  RECTANGLE  0.01800     x 0.04200       0.000 NO     DARK 
+  RECTANGLE  0.02600     x 0.03000      90.000 NO     DARK 
+  RECTANGLE  0.02700     x 0.02500       0.000 NO     DARK 
+  RECTANGLE  0.02700     x 0.02500      90.000 NO     DARK 
+  RECTANGLE  0.02700     x 0.02900       0.000 NO     DARK 
+  RECTANGLE  0.02700     x 0.02900      90.000 NO     DARK 
+  RECTANGLE  0.02800     x 0.03100      90.000 NO     DARK 
+  RECTANGLE  0.03300     x 0.04100       0.000 NO     DARK 
+  RECTANGLE  0.03500     x 0.04000       0.000 NO     DARK 
+  RECTANGLE  0.03500     x 0.04000     179.824 NO     DARK 
+  RECTANGLE  0.04000     x 0.03700      90.000 NO     DARK 
+  RECTANGLE  0.04500     x 0.06000       0.000 NO     DARK 
+  RECTANGLE  0.04800     x 0.05200       0.000 NO     DARK 
+  RECTANGLE  0.04800     x 0.05200      89.824 NO     DARK 
+  RECTANGLE  0.04800     x 0.05200      90.000 NO     DARK 
+  RECTANGLE  0.04800     x 0.05200     138.841 NO     DARK 
+  RECTANGLE  0.05200     x 0.06200       0.000 NO     DARK 
+  RECTANGLE  0.05200     x 0.06200      90.000 NO     DARK 
+  RECTANGLE  0.05600     x 0.06800       0.000 NO     DARK 
+  RECTANGLE  0.05600     x 0.06800      90.000 NO     DARK 
+  RECTANGLE  0.06000     x 0.05300      90.000 NO     DARK 
+  RECTANGLE  0.06700     x 0.04200      90.000 NO     DARK 
+  RECTANGLE  0.06800     x 0.08400       0.000 NO     DARK 
+  RECTANGLE  0.20500     x 0.10000       0.000 NO     DARK 
+  OBLONG     0.01600     x 0.03700      90.000 NO     DARK 
+  OBLONG     0.01800     x 0.04500       0.000 NO     DARK 
+  OBLONG     0.01800     x 0.04500      89.824 NO     DARK 
+  OBLONG     0.01800     x 0.04500      90.000 NO     DARK 
+  OBLONG     0.01800     x 0.04500     179.824 NO     DARK 
+  OBLONG     0.04900     x 0.04100       0.000 NO     DARK 
+  OBLONG     0.07600     x 0.04900       0.000 NO     DARK 
+
+     mask_sec created.
+
+
+================================================================
+     PROCESSING FILM < gold_prm >
+     TO FILE < C:/tmp/20_043758d/worklib/02_043758d_top/physical/gold_prm.art > ...
+================================================================
+
+  FILM PARAMETERS :
+  ---------------------------------------------------------
+  Undefined line width                8.00 MIL
+  Suppress shape fill on neg film     NO
+  Mirror code                         NONE
+  Rotate angle                        NONE
+  Offset x:                           0.00
+  Offset y:                           0.00
+  Plot negative                       NO
+  Suppress unconnected internal pads  NO
+  Draw holes only                     NO
+
+
+
+  APERTURES USED (UNIT = IN):
+  ---------------------------------------------------------
+  TYPE       SIZE/NAME                   ROT   MIRROR MODE 
+  ---------------------------------------------------------
+  CIRCLE     0.00800                                  DARK 
+  CIRCLE     0.05000                                  DARK 
+
+     gold_prm created.
+
+
+================================================================
+     PROCESSING FILM < gold_sec >
+     TO FILE < C:/tmp/20_043758d/worklib/02_043758d_top/physical/gold_sec.art > ...
+================================================================
+
+  FILM PARAMETERS :
+  ---------------------------------------------------------
+  Undefined line width                8.00 MIL
+  Suppress shape fill on neg film     NO
+  Mirror code                         NONE
+  Rotate angle                        NONE
+  Offset x:                           0.00
+  Offset y:                           0.00
+  Plot negative                       NO
+  Suppress unconnected internal pads  NO
+  Draw holes only                     NO
+
+
+
+  APERTURES USED (UNIT = IN):
+  ---------------------------------------------------------
+  TYPE       SIZE/NAME                   ROT   MIRROR MODE 
+  ---------------------------------------------------------
+  CIRCLE     0.00800                                  DARK 
+  CIRCLE     0.05000                                  DARK 
+
+     gold_sec created.
+
+
+================================================================
+     PROCESSING FILM < paste_prm >
+     TO FILE < C:/tmp/20_043758d/worklib/02_043758d_top/physical/paste_prm.art > ...
+================================================================
+
+  FILM PARAMETERS :
+  ---------------------------------------------------------
+  Undefined line width                8.00 MIL
+  Suppress shape fill on neg film     NO
+  Mirror code                         NONE
+  Rotate angle                        NONE
+  Offset x:                           0.00
+  Offset y:                           0.00
+  Plot negative                       NO
+  Suppress unconnected internal pads  NO
+  Draw holes only                     NO
+
+
+
+  APERTURES USED (UNIT = IN):
+  ---------------------------------------------------------
+  TYPE       SIZE/NAME                   ROT   MIRROR MODE 
+  ---------------------------------------------------------
+  CIRCLE     0.00800                                  DARK 
+  CIRCLE     0.01000                                  DARK 
+  CIRCLE     0.01200                                  DARK 
+  CIRCLE     0.01300                                  DARK 
+  CIRCLE     0.01400                                  DARK 
+  CIRCLE     0.01500                                  DARK 
+  CIRCLE     0.04000                                  DARK 
+  CIRCLE     0.05000                                  DARK 
+  SQUARE     0.02400                     0.000 NO     DARK 
+  SQUARE     0.08300                     0.000 NO     DARK 
+  SQUARE     0.09800                     0.000 NO     DARK 
+  SQUARE     0.12200                     0.000 NO     DARK 
+  SQUARE     0.13000                     0.000 NO     DARK 
+  RECTANGLE  0.01200     x 0.01600       0.000 NO     DARK 
+  RECTANGLE  0.01200     x 0.01600       0.084 NO     DARK 
+  RECTANGLE  0.01200     x 0.01600      90.000 NO     DARK 
+  RECTANGLE  0.01200     x 0.01600     109.360 NO     DARK 
+  RECTANGLE  0.01200     x 0.01600     110.237 NO     DARK 
+  RECTANGLE  0.01200     x 0.01600     138.393 NO     DARK 
+  RECTANGLE  0.01200     x 0.01600     138.985 NO     DARK 
+  RECTANGLE  0.01200     x 0.01600     150.000 NO     DARK 
+  RECTANGLE  0.01200     x 0.02000       0.000 NO     DARK 
+  RECTANGLE  0.01200     x 0.02600       0.000 NO     DARK 
+  RECTANGLE  0.01600     x 0.03500      90.000 NO     DARK 
+  RECTANGLE  0.01600     x 0.05300      90.000 NO     DARK 
+  RECTANGLE  0.01600     x 0.05500      90.000 NO     DARK 
+  RECTANGLE  0.02000     x 0.04300       0.000 NO     DARK 
+  RECTANGLE  0.02200     x 0.02000       0.000 NO     DARK 
+  RECTANGLE  0.02200     x 0.02000      90.000 NO     DARK 
+  RECTANGLE  0.02200     x 0.02400       0.000 NO     DARK 
+  RECTANGLE  0.02200     x 0.02400      90.000 NO     DARK 
+  RECTANGLE  0.02200     x 0.02400      90.064 NO     DARK 
+  RECTANGLE  0.02200     x 0.02800       0.000 NO     DARK 
+  RECTANGLE  0.03000     x 0.03500       0.000 NO     DARK 
+  RECTANGLE  0.03000     x 0.03500      90.000 NO     DARK 
+  RECTANGLE  0.03000     x 0.06500       0.000 NO     DARK 
+  RECTANGLE  0.03000     x 0.06500       6.313 NO     DARK 
+  RECTANGLE  0.03000     x 0.06500      60.000 NO     DARK 
+  RECTANGLE  0.03000     x 0.06500      90.000 NO     DARK 
+  RECTANGLE  0.03100     x 0.03000      90.000 NO     DARK 
+  RECTANGLE  0.03300     x 0.05100       0.000 NO     DARK 
+  RECTANGLE  0.03900     x 0.03700      90.000 NO     DARK 
+  RECTANGLE  0.03900     x 0.04300       0.000 NO     DARK 
+  RECTANGLE  0.03900     x 0.04300      90.000 NO     DARK 
+  RECTANGLE  0.04000     x 0.05500       0.000 NO     DARK 
+  RECTANGLE  0.04000     x 0.05500      90.000 NO     DARK 
+  RECTANGLE  0.04100     x 0.03900       0.000 NO     DARK 
+  RECTANGLE  0.04100     x 0.03900      90.000 NO     DARK 
+  RECTANGLE  0.04100     x 0.05500       0.000 NO     DARK 
+  RECTANGLE  0.04100     x 0.08700       0.000 NO     DARK 
+  RECTANGLE  0.04100     x 0.08700      90.000 NO     DARK 
+  RECTANGLE  0.04300     x 0.04700       0.000 NO     DARK 
+  RECTANGLE  0.04300     x 0.04700      90.000 NO     DARK 
+  RECTANGLE  0.04300     x 0.05900      48.644 NO     DARK 
+  RECTANGLE  0.04300     x 0.05900      48.813 NO     DARK 
+  RECTANGLE  0.04300     x 0.05900      90.000 NO     DARK 
+  RECTANGLE  0.04500     x 0.05700       0.000 NO     DARK 
+  RECTANGLE  0.04700     x 0.05700       0.000 NO     DARK 
+  RECTANGLE  0.04700     x 0.05700      90.000 NO     DARK 
+  RECTANGLE  0.05100     x 0.06300       0.000 NO     DARK 
+  RECTANGLE  0.05100     x 0.06300      90.000 NO     DARK 
+  RECTANGLE  0.05800     x 0.14500       0.000 NO     DARK 
+  RECTANGLE  0.05900     x 0.03500       0.000 NO     DARK 
+  RECTANGLE  0.06300     x 0.03900      90.000 NO     DARK 
+  RECTANGLE  0.06300     x 0.07900       0.000 NO     DARK 
+  RECTANGLE  0.06300     x 0.07900      90.000 NO     DARK 
+  RECTANGLE  0.07500     x 0.11400       0.000 NO     DARK 
+  RECTANGLE  0.17300     x 0.06500       0.000 NO     DARK 
+  RECTANGLE  0.20000     x 0.01900       0.000 NO     DARK 
+  RECTANGLE  0.20000     x 0.09500       0.000 NO     DARK 
+  OBLONG     0.00800     x 0.03000       0.000 NO     DARK 
+  OBLONG     0.01200     x 0.03400      90.000 NO     DARK 
+  OBLONG     0.01200     x 0.03500       0.000 NO     DARK 
+  OBLONG     0.01200     x 0.03500      90.000 NO     DARK 
+  OBLONG     0.01400     x 0.03900       0.000 NO     DARK 
+  OBLONG     0.01400     x 0.03900      90.000 NO     DARK 
+  OBLONG     0.01400     x 0.04100       0.000 NO     DARK 
+  OBLONG     0.01400     x 0.04100      90.000 NO     DARK 
+  PAD SHAPE  SH91X67                     0.000 NO     DARK 
+  PAD SHAPE  SH91X67-2                   0.000 NO     DARK 
+  PAD SHAPE  SH32X26                     0.000 NO     DARK 
+  PAD SHAPE  SH91X67-2                 180.000 NO     DARK 
+  PAD SHAPE  SH91X67                   180.000 NO     DARK 
+  PAD SHAPE  SH32X26                   180.000 NO     DARK 
+
+     paste_prm created.
+
+
+================================================================
+     PROCESSING FILM < paste_sec >
+     TO FILE < C:/tmp/20_043758d/worklib/02_043758d_top/physical/paste_sec.art > ...
+================================================================
+
+  FILM PARAMETERS :
+  ---------------------------------------------------------
+  Undefined line width                8.00 MIL
+  Suppress shape fill on neg film     NO
+  Mirror code                         NONE
+  Rotate angle                        NONE
+  Offset x:                           0.00
+  Offset y:                           0.00
+  Plot negative                       NO
+  Suppress unconnected internal pads  NO
+  Draw holes only                     NO
+
+
+
+  APERTURES USED (UNIT = IN):
+  ---------------------------------------------------------
+  TYPE       SIZE/NAME                   ROT   MIRROR MODE 
+  ---------------------------------------------------------
+  CIRCLE     0.00800                                  DARK 
+  CIRCLE     0.04000                                  DARK 
+  CIRCLE     0.05000                                  DARK 
+  SQUARE     0.02400                     0.000 NO     DARK 
+  SQUARE     0.02400                    89.918 NO     DARK 
+  SQUARE     0.08300                     0.000 NO     DARK 
+  SQUARE     0.08300                    89.824 NO     DARK 
+  RECTANGLE  0.01200     x 0.01600       0.000 NO     DARK 
+  RECTANGLE  0.01200     x 0.01600      89.824 NO     DARK 
+  RECTANGLE  0.01200     x 0.01600      90.000 NO     DARK 
+  RECTANGLE  0.01200     x 0.01600     179.824 NO     DARK 
+  RECTANGLE  0.01300     x 0.03700       0.000 NO     DARK 
+  RECTANGLE  0.02100     x 0.02500      90.000 NO     DARK 
+  RECTANGLE  0.02200     x 0.02000       0.000 NO     DARK 
+  RECTANGLE  0.02200     x 0.02000      90.000 NO     DARK 
+  RECTANGLE  0.02200     x 0.02400       0.000 NO     DARK 
+  RECTANGLE  0.02200     x 0.02400      90.000 NO     DARK 
+  RECTANGLE  0.02300     x 0.02600      90.000 NO     DARK 
+  RECTANGLE  0.02800     x 0.03600       0.000 NO     DARK 
+  RECTANGLE  0.03000     x 0.03500       0.000 NO     DARK 
+  RECTANGLE  0.03000     x 0.03500     179.824 NO     DARK 
+  RECTANGLE  0.03500     x 0.03200      90.000 NO     DARK 
+  RECTANGLE  0.04000     x 0.05500       0.000 NO     DARK 
+  RECTANGLE  0.04300     x 0.04700       0.000 NO     DARK 
+  RECTANGLE  0.04300     x 0.04700      89.824 NO     DARK 
+  RECTANGLE  0.04300     x 0.04700      90.000 NO     DARK 
+  RECTANGLE  0.04300     x 0.04700     138.841 NO     DARK 
+  RECTANGLE  0.04700     x 0.05700       0.000 NO     DARK 
+  RECTANGLE  0.04700     x 0.05700      90.000 NO     DARK 
+  RECTANGLE  0.05100     x 0.06300       0.000 NO     DARK 
+  RECTANGLE  0.05100     x 0.06300      90.000 NO     DARK 
+  RECTANGLE  0.05500     x 0.04700      90.000 NO     DARK 
+  RECTANGLE  0.06300     x 0.03900      90.000 NO     DARK 
+  RECTANGLE  0.06300     x 0.07900       0.000 NO     DARK 
+  RECTANGLE  0.20000     x 0.09500       0.000 NO     DARK 
+  OBLONG     0.01200     x 0.03400      90.000 NO     DARK 
+  OBLONG     0.01400     x 0.04100       0.000 NO     DARK 
+  OBLONG     0.01400     x 0.04100      89.824 NO     DARK 
+  OBLONG     0.01400     x 0.04100      90.000 NO     DARK 
+  OBLONG     0.01400     x 0.04100     179.824 NO     DARK 
+
+     paste_sec created.
+
+
+================================================================
+     PROCESSING FILM < rework_top >
+     TO FILE < C:/tmp/20_043758d/worklib/02_043758d_top/physical/rework_top.art > ...
+================================================================
+
+  FILM PARAMETERS :
+  ---------------------------------------------------------
+  Undefined line width                8.00 MIL
+  Suppress shape fill on neg film     NO
+  Mirror code                         NONE
+  Rotate angle                        NONE
+  Offset x:                           0.00
+  Offset y:                           0.00
+  Plot negative                       NO
+  Suppress unconnected internal pads  NO
+  Draw holes only                     NO
+
+
+
+  APERTURES USED (UNIT = IN):
+  ---------------------------------------------------------
+  TYPE       SIZE/NAME                   ROT   MIRROR MODE 
+  ---------------------------------------------------------
+  CIRCLE     0.00600                                  DARK 
+  CIRCLE     0.00800                                  DARK 
+
+     rework_top created.
+
+
+================================================================
+     PROCESSING FILM < rework_bottom >
+     TO FILE < C:/tmp/20_043758d/worklib/02_043758d_top/physical/rework_bottom.art > ...
+================================================================
+
+  FILM PARAMETERS :
+  ---------------------------------------------------------
+  Undefined line width                8.00 MIL
+  Suppress shape fill on neg film     NO
+  Mirror code                         NONE
+  Rotate angle                        NONE
+  Offset x:                           0.00
+  Offset y:                           0.00
+  Plot negative                       NO
+  Suppress unconnected internal pads  NO
+  Draw holes only                     NO
+
+
+
+  APERTURES USED (UNIT = IN):
+  ---------------------------------------------------------
+  TYPE       SIZE/NAME                   ROT   MIRROR MODE 
+  ---------------------------------------------------------
+  CIRCLE     0.00800                                  DARK 
+  CIRCLE     0.01200                                  DARK 
+
+     rework_bottom created.
+
+
+------------------------------------------------------
+ SUMMARY:
+        fab1 created with warnings
+        fab2 created.
+        assy1 created.
+        assy2 created.
+        l1_primary created.
+        l2_gnd created with warnings
+        l3_pwr created with warnings
+        l4_gnd created with warnings
+        l5_sig created.
+        l6_sig created.
+        l7_gnd created with warnings
+        l8_pwr created with warnings
+        l9_gnd created with warnings
+        l10_secondary created.
+        silk_prm created.
+        mask_prm created.
+        silk_sec created.
+        mask_sec created.
+        gold_prm created.
+        gold_sec created.
+        paste_prm created.
+        paste_sec created.
+        rework_top created.
+        rework_bottom created.
+
+ ARTWORK had warnings

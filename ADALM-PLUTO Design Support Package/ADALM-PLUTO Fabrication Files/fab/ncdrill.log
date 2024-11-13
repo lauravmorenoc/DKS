@@ -1,0 +1,85 @@
+(---------------------------------------------------------------------)
+(                                                                     )
+(    NC DRILL Log                                                     )
+(                                                                     )
+(    Drawing          : 08_043758d.brd                                )
+(    Software Version : 17.2060                                       )
+(    Date/Time        : Fri Apr 03 00:39:00 2020                      )
+(                                                                     )
+(---------------------------------------------------------------------)
+
+
+
+ Processing NC Parameters file 'nc_param.txt' ...
+
+ NC PARAMETERS
+ -------------
+
+ FORMAT   		2.4
+ MACHINE-OFFSET		x:0.00000	y:0.00000   (inch)
+ FEEDRATE		1
+ COORDINATES		ABSOLUTE
+ OUTPUT-UNITS		ENGLISH
+ TOOL-ORDER		INCREASING
+ REPEAT-CODES		YES
+ SUPPRESS-LEAD-ZEROES	NO
+ SUPPRESS-TRAIL-ZEROES	NO
+ SUPPRESS-EQUAL		NO
+ TOOL-SELECT		YES
+ HEADER			08_043758d
+ LEADER			12
+ CODE			ASCII
+ SEPARATE		NO
+ SEPARATE-ROUTING	NO
+ OPTIMIZE_DRILLING	NO
+ ENHANCED_EXCELLON	NO
+ SCALE			1.000000
+
+ WARNING(SPMHMF-360): Design precision is greater than that of the drill output file data.
+ WARNING(SPMHMF-361): Data rounding errors are very possible.
+ WARNING(SPMHMF-365): This design contains 8 slot holes that cannot be drilled.
+ WARNING(SPMHMF-366): They can be processed by NC routing instead.
+ WARNING(SPMHMF-368): Cannot find NC Drill tool file 'nc_tools.txt'
+ WARNING(SPMHMF-369): ... will auto-generate tool file 'nc_tools_auto.txt'.
+
+
+     Auto-generating tool file 'nc_tools_auto.txt' ...
+
+           Size  Plating  Tool        + Tolerance  - Tolerance
+
+           8.00  P        T01            0.000000     0.000000
+          10.00  P        T02            0.000000     0.000000
+          20.00  P        T03            0.000000     0.000000
+          28.00  P        T04            0.000000     0.000000
+          45.00  P        T05            0.000000     0.000000
+          25.00  N        T06            0.000000     0.000000
+          28.00  N        T07            0.000000     0.000000
+          50.00  N        T08            0.000000     0.000000
+          90.00  N        T09            0.000000     0.000000
+         126.00  N        T10            0.000000     0.000000
+
+
+ Drill files being output to directory 'C:/tmp/20_043758d/worklib/02_043758d_top/physical' ...
+
+
+
+     'ncdrill-1-10.drl' created for holes connecting TOP and BOTTOM
+     --------------------------------------------------------------
+
+     Tool  Num     Size      +/- Tolerance     Plating   Quantity
+
+     T01    1.   8.0000    0.0000/  0.0000      PLATED        601
+     T02    2.  10.0000    0.0000/  0.0000      PLATED        883
+     T03    3.  20.0000    0.0000/  0.0000      PLATED         15
+     T04    4.  28.0000    0.0000/  0.0000      PLATED         10
+     T05    5.  45.0000    0.0000/  0.0000      PLATED         24
+     T06    6.  25.0000    0.0000/  0.0000  NON_PLATED         18
+     T07    7.  28.0000    0.0000/  0.0000  NON_PLATED          2
+     T08    8.  50.0000    0.0000/  0.0000  NON_PLATED         12
+     T09    9.  90.0000    0.0000/  0.0000  NON_PLATED          1
+     T10   10. 126.0000    0.0000/  0.0000  NON_PLATED          8
+
+     ---- Total holes:                                       1574
+
+     ---- Total head travel:              49.14 feet (14.98 meters)
+
