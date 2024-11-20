@@ -2,9 +2,9 @@ import numpy as np
 import adi
 import matplotlib.pyplot as plt
 
-sample_rate = 522e3 # Hz
-center_freq = 2.4e9 # Hz
-num_samps = 32768 # number of samples per call to rx()
+sample_rate = 1e6 # Hz
+center_freq = 915e6 # Hz
+num_samps = 100000 # number of samples per call to rx()
 
 sdr = adi.Pluto("ip:192.168.2.1")
 sdr.sample_rate = int(sample_rate)
@@ -23,11 +23,12 @@ sdr.rx_hardwaregain_chan0 = 0.0 # dB, increase to increase the receive gain, but
 
 # Create transmit waveform (simple sine wave, 16 samples per symbol)
 
-num_symbols = 1000 # number of values
-freq=1e3 # message frequency, Hz
-t = np.linspace(0, 10/freq, num=num_symbols)
+num_symbols = 10000 # number of values
+t = np.arange(num_symbols)/sample_rate
+freq=1e4 # message frequency, Hz
 x_symbols=np.cos(2*np.pi*freq*t)
-samples = np.repeat(x_symbols, 16) # 16 samples per symbol (rectangular pulses)
+#samples = np.repeat(x_symbols, 16) # 16 samples per symbol (rectangular pulses)
+samples=x_symbols
 samples *= 2**14 # The PlutoSDR expects samples to be between -2^14 and +2^14, not -1 and +1 like some SDRs
 
 # Plot freq domain
@@ -36,26 +37,13 @@ plt.plot(t, x_symbols)
 plt.xlabel("Time [s]")
 plt.ylabel("Signal value")
 
-'''
-
-# Example for a QPSK signal, 16 samples per symbol
-num_symbols = 1000
-x_int = np.random.randint(0, 4, num_symbols) # 0 to 3
-x_degrees = x_int*360/4.0 + 45 # 45, 135, 225, 315 degrees
-x_radians = x_degrees*np.pi/180.0 # sin() and cos() takes in radians
-x_symbols = np.cos(x_radians) + 1j*np.sin(x_radians) # this produces our QPSK complex symbols
-samples = np.repeat(x_symbols, 16) # 16 samples per symbol (rectangular pulses)
-samples *= 2**14 # The PlutoSDR expects samples to be between -2^14 and +2^14, not -1 and +1 like some SDRs
-'''
-
+# Clear buffer just to be safe
+for i in range (0, 10):
+    raw_data = sdr.rx()
 
 # Start the transmitter
 sdr.tx_cyclic_buffer = True # Enable cyclic buffers
 sdr.tx(samples) # start transmitting
-
-# Clear buffer just to be safe
-for i in range (0, 10):
-    raw_data = sdr.rx()
 
 # Receive samples
 rx_samples = sdr.rx()
@@ -71,8 +59,9 @@ f = np.linspace(sample_rate/-2, sample_rate/2, len(psd))
 
 # Plot time domain
 plt.figure(1)
-plt.plot(np.real(rx_samples[::16]))
-plt.plot(np.imag(rx_samples[::16]))
+plt.plot(np.real(rx_samples))
+plt.plot(np.imag(rx_samples))
+#plt.plot(rx_samples)
 plt.xlabel("Time")
 
 # Plot freq domain
