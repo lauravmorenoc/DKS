@@ -21,24 +21,7 @@ sdr.rx_buffer_size = num_samps
 sdr.gain_control_mode_chan0 = 'manual'
 sdr.rx_hardwaregain_chan0 = 0.0 # dB, increase to increase the receive gain, but be careful not to saturate the ADC
 
-# Create transmit waveform (simple sine wave, 16 samples per symbol)
-'''
-num_symbols = 1000 # number of values
-freq=1e3 # message frequency, Hz
-t = np.linspace(0, 10/freq, num=num_symbols)
-x_symbols=np.cos(2*np.pi*freq*t)
-samples = np.repeat(x_symbols, 16) # 16 samples per symbol (rectangular pulses)
-samples *= 2**14 # The PlutoSDR expects samples to be between -2^14 and +2^14, not -1 and +1 like some SDRs
-
-# Plot freq domain
-plt.figure(0)
-plt.plot(t, x_symbols)
-plt.xlabel("Time [s]")
-plt.ylabel("Signal value")
-
-'''
-
-# Example for a QPSK signal, 16 samples per symbol
+# Create transmit waveform (QPSK signal, 16 samples per symbol
 num_symbols = 1000
 x_int = np.random.randint(0, 4, num_symbols) # 0 to 3
 x_degrees = x_int*360/4.0 + 45 # 45, 135, 225, 315 degrees
@@ -46,7 +29,6 @@ x_radians = x_degrees*np.pi/180.0 # sin() and cos() takes in radians
 x_symbols = np.cos(x_radians) + 1j*np.sin(x_radians) # this produces our QPSK complex symbols
 samples = np.repeat(x_symbols, 16) # 16 samples per symbol (rectangular pulses)
 samples *= 2**14 # The PlutoSDR expects samples to be between -2^14 and +2^14, not -1 and +1 like some SDRs
-
 
 
 # Start the transmitter
