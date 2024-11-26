@@ -3,6 +3,7 @@
 import adi            # Gives access to pluto commands
 import matplotlib.pyplot as plt
 import numpy as np
+from graphics import *
 
 '''Setup'''
 samp_rate = 2e6    # must be <=30.72 MHz if both channels are enabled
@@ -77,13 +78,18 @@ for i in range(1):
         delayed_sum = dbfs(Rx_0 + delayed_Rx_1)
 
         # plot the FFT of the new delayed signal
+        
         plt.plot(xf, delayed_sum)
         plt.xlabel("frequency [MHz]")
         plt.ylabel("Rx0 + Rx1 [dBfs]")
         plt.ylim(top=0, bottom=-100)
         plt.text(-1, -10, "phase shift = {} deg".format(phase_delay))
         plt.draw()
-        plt.show()
+         #plt.show()
+        plt.pause(0.0001)
+        plt.clf()
+       
+        ##
 
 sdr.tx_destroy_buffer()
 
