@@ -12,15 +12,15 @@ import numpy as np
 '''Setup'''
 samp_rate = 2e6    # must be <=30.72 MHz if both channels are enabled
 NumSamples = 2**12
-rx_lo = 2.3e9
+rx_lo = 3e9
 rx_mode = "manual"  # can be "manual" or "slow_attack"
 rx_gain0 = 40
 rx_gain1 = 40
 tx_lo = rx_lo
-tx_gain = -3
+tx_gain = 0
 fc0 = int(200e3)
-phase_cal = -160
-num_scans = 500
+phase_cal =-70
+num_scans = 1000
 Plot_Compass = False
 
 ''' Set distance between Rx antennas '''
