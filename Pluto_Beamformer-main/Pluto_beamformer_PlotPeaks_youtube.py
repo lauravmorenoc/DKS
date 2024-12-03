@@ -12,14 +12,14 @@ import numpy as np
 '''Setup'''
 samp_rate = 2e6    # must be <=30.72 MHz if both channels are enabled
 NumSamples = 2**12
-rx_lo = 3e9
+rx_lo = 2.4e9
 rx_mode = "manual"  # can be "manual" or "slow_attack"
 rx_gain0 = 40
 rx_gain1 = 40
 tx_lo = rx_lo
 tx_gain = 0
 fc0 = int(200e3)
-phase_cal =-70
+phase_cal =-174
 num_scans = 1000
 Plot_Compass = False
 
@@ -82,7 +82,7 @@ def dbfs(raw_data):
     s_shift = np.fft.fftshift(s_fft)
     s_dbfs = 20*np.log10(np.abs(s_shift)/(2**11))     # Pluto is a signed 12 bit ADC, so use 2^11 to convert to dBFS
     return s_dbfs
-
+a_thet=[1 exp(-j*pi*sin(theta)) exp(-j*2*pi*sin(theta) ]
 '''Collect Data'''
 for i in range(20):  
     # let Pluto run for a bit, to do all its calibrations, then get a buffer
