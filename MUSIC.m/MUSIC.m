@@ -5,7 +5,7 @@ d = 0.0107 / 2;              % Distance between antennas (half-wavelength)
 wavelength = 0.0107;         % Wavelength at 28 GHz (in meters)
 SNR = 20;                    % Signal-to-noise ratio (dB)
 
-% True DoA angles
+% True DoA (direction of arrival) angles
 true_DoAs = [-30, 0, 40];    % True DoA angles (in degrees)
 
 % Check if M >= K
@@ -25,7 +25,7 @@ plot_results(x, A_true, doa_estimates, M, K, d, wavelength, true_DoAs);
 % Function to generate synthetic data
 function [x, A] = generate_synthetic_data(M, K, d, wavelength, DoAs, SNR)
     N = 1000; % Number of samples
-    A = exp(-1i*2*pi*d*(0:M-1)'*sind(DoAs)/wavelength); % Steering matrix
+    A = exp(-1i*2*pi*d*(0:M-1)'*sind(DoAs)/wavelength) % Steering matrix
     S = sqrt(0.5) * (randn(K, N) + 1i * randn(K, N)); % Complex Gaussian signals
     noise_variance = 10^(-SNR/10) * trace(A * (S * S') * A') / (M * N);
     n = sqrt(noise_variance / 2) * (randn(M, N) + 1i * randn(M, N)); % Complex Gaussian noise
