@@ -18,3 +18,27 @@ A first example was made with GNU Radio. [This webpage](https://wiki.gnuradio.or
 ![image](https://github.com/user-attachments/assets/611f4916-e8cd-44a3-aee4-6a65cfee6501)
 
 This small block arrange attempts to send a 10k cosine signal centered at 2.4 GHz 
+
+## Python and Github
+In order to be able to use this repository and the SDR thorugh Pyhon, git must be installed from [here](https://git-scm.com/downloads) and python from [here](https://www.python.org/downloads/). After that, the corresponding libraries should be installed. The following instructions attempt to do that: 
+
+* Open this [analog devices link](https://wiki.analog.com/resources/tools-software/linux-software/pyadi-iio?utm_source=chatgpt.com)
+* Follow the first step which corresponds to downloading the LibIIO library. If the latest version doesn't have a windows installer, check for an older version.
+* After installing, follow steps 3 and 4 (commands on the command prompt).
+* Last, install all the libraries that the code needs to run. This are the ones that are necesary at the moment, however, if the code changes and more things are added, more might be required:
+  ```
+  pip install numpy
+  pip install matplotlib
+  ```
+
+## Visual Studio Code
+Download [Visual Studio Code](https://code.visualstudio.com/docs/?dv=win64user) or your preferred python code editor.
+
+## Clone this repository
+That was it! Now just clone this repository using the line
+
+```
+git clone https://github.com/lauravmorenoc/DKS/
+```
+
+on the git bash and open the python code editor to start using the files.
