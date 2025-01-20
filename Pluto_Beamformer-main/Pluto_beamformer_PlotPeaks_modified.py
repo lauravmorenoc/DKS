@@ -9,6 +9,7 @@ import adi
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 '''Setup'''
 samp_rate = 2e6    # must be <=30.72 MHz if both channels are enabled
 NumSamples = 2**12
@@ -31,8 +32,10 @@ d = d_wavelength*wavelength         # distance between elements in meters
 print("Set distance between Rx Antennas to ", int(d*1000), "mm")
 
 '''Create Radios'''
-sdr1 = adi.ad9361(uri='ip:192.168.2.1')
-sdr2 = adi.ad9361(uri='') # Add IP Adress
+#sdr1 = adi.ad9361(uri='ip:192.168.2.1')
+#sdr2 = adi.ad9361(uri='ip:169.254.241.224') # Add IP Adress
+sdr1=adi.ad9361(uri='usb:')
+sdr2=adi.Pluto(uri='usb:')
 
 
 '''Configure properties for the Radio'''
