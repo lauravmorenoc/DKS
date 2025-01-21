@@ -37,8 +37,8 @@ print("Set distance between Rx Antennas to ", int(d*1000), "mm")
 ########### SDR 1 ##################
 # sdr = adi.ad9361(uri='ip:192.168.2.1')
 # sdr2 = adi.Pluto(uri='ip:192.168.2.2')
-sdr=adi.ad9361(uri='usb:1.19.5')
-sdr2=adi.Pluto(uri='usb:1.20.5')
+sdr=adi.ad9361(uri='usb:1.5.5')
+sdr2=adi.Pluto(uri='usb:1.6.5')
 
 # sdr = adi.Pluto(uri='ip:192.168.2.2')
 

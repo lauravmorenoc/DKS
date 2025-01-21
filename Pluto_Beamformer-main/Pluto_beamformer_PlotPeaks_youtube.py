@@ -32,6 +32,7 @@ print("Set distance between Rx Antennas to ", int(d*1000), "mm")
 '''Create Radio'''
 sdr = adi.ad9361(uri='ip:192.168.2.1')
 
+
 '''Configure properties for the Radio'''
 sdr.rx_enabled_channels = [0, 1]
 sdr.sample_rate = int(samp_rate)

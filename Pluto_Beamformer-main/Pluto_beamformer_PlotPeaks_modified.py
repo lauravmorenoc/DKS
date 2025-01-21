@@ -34,12 +34,13 @@ print("Set distance between Rx Antennas to ", int(d*1000), "mm")
 '''Create Radios'''
 #sdr1 = adi.ad9361(uri='ip:192.168.2.1')
 #sdr2 = adi.ad9361(uri='ip:169.254.241.224') # Add IP Adress
-sdr1=adi.ad9361(uri='usb:')
-sdr2=adi.Pluto(uri='usb:')
+sdr1=adi.ad9361(uri='usb:1.5.5')
+sdr2=adi.ad9361(uri='usb:1.6.5')
 
 
 '''Configure properties for the Radio'''
-sdr1.rx_enabled_channels = sdr2.rx_enabled_channels = [0, 1]
+sdr1.rx_enabled_channels = [0, 1]
+sdr2.rx_enabled_channels = [0, 1]
 sdr1.sample_rate = sdr2.sample_rate = int(samp_rate)
 sdr1.rx_rf_bandwidth = sdr2.rx_rf_bandwidth = int(fc0 * 3)
 sdr1.rx_lo = sdr2.rx_lo = int(rx_lo)
@@ -47,7 +48,8 @@ sdr1.gain_control_mode = sdr2.gain_control_mode = rx_mode
 sdr1.rx_hardwaregain_chan0 = sdr2.rx_hardwaregain_chan0 = int(rx_gain0)
 sdr1.rx_hardwaregain_chan1 = sdr2.rx_hardwaregain_chan1 = int(rx_gain1)
 sdr1.rx_buffer_size = sdr2.rx_buffer_size = int(NumSamples)
-sdr1._rxadc.set_kernel_buffers_count(sdr2._rxadc.set_kernel_buffers_count(1))  # Set buffers to 1 to avoid stale data on Pluto
+sdr1._rxadc.set_kernel_buffers_count(1)  # Set buffers to 1 to avoid stale data on Pluto
+sdr2._rxadc.set_kernel_buffers_count(1)
 sdr1.tx_rf_bandwidth = int(fc0*3)
 sdr1.tx_lo = int(tx_lo)
 sdr1.tx_cyclic_buffer = True
