@@ -28,27 +28,34 @@ fig=plt.figure()
 ax=fig.add_subplot(111)
 x,y=[0],[0]
 scatter = ax.scatter([],[],label="SDR #1")
+ax.grid(True)
 ax.set_xlabel("Real part")
 ax.set_ylabel("Imaginary part")
+ax.set_xlim(-1, 1)
+ax.set_ylim(-1, 1)
+
+for i in range(20):  
+    # let Pluto run for a bit, to do all its calibrations, then get a buffer
+    data = sdr.rx()
 
 for s in range(1000):
 
     data = sdr.rx()
 
-    Rx_0=data
-    Rx_0=Rx_0/np.abs(Rx_0)
+    Rx=data[0] # first channel
+    
+    abs_val=np.abs(Rx)
+    index= np.where(abs_val != 0)[0]
+    Rx_0 = Rx[index] / abs_val[index]
 
-    pow_re=np.mean(np.real(Rx_0))
-    pow_im=np.mean(np.imag(Rx_0))
+    pow_re=np.real(Rx_0)
+    pow_im=np.imag(Rx_0)
 
-    if s>100:
-       x=x[1:len(x)]
-       y=y[1:len(y)]
-
-    y=np.append(y,pow_im)
-    x=np.append(x,pow_re)
-
-    scatter = ax.scatter(x, y)
+    if s > 20:
+        scatter.set_offsets(np.column_stack((pow_re[-50:], pow_im[-50:])))
+        print('ya')
+    else:
+        scatter = ax.scatter(pow_re[len(pow_re)-50:len(pow_re)], pow_im[len(pow_im)-50:len(pow_im)])
 
     plt.pause(0.1)
     t=1
