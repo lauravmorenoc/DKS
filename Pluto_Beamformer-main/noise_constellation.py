@@ -46,6 +46,7 @@ for s in range(1000):
     
     abs_val=np.abs(Rx)
     index= np.where(abs_val != 0)[0]
+    #print(index)
     Rx_0 = Rx[index] / abs_val[index]
 
     pow_re=np.real(Rx_0)
@@ -53,7 +54,6 @@ for s in range(1000):
 
     if s > 20:
         scatter.set_offsets(np.column_stack((pow_re[-50:], pow_im[-50:])))
-        print('ya')
     else:
         scatter = ax.scatter(pow_re[len(pow_re)-50:len(pow_re)], pow_im[len(pow_im)-50:len(pow_im)])
 
