@@ -12,7 +12,7 @@ rx_lo = 2.3e9 # Center frequency
 rx_mode = "manual"  # can be "manual" or "slow_attack"
 rx_gain0 = 0
 tx_lo = rx_lo
-tx_gain = -50 # -3dB attenuation
+tx_gain = -10 # -10dB attenuation
 fc0 = int(200e3) # DC signal frequency
 phase_cal = 0 # Phase calibration factor
 

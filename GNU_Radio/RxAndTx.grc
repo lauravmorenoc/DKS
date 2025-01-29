@@ -98,7 +98,7 @@ blocks:
     len_tag_key: ''
     samplerate: samp_rate
     type: fc32
-    uri: 192.168.2.1
+    uri: usb:1.5.5
   states:
     bus_sink: false
     bus_source: false
@@ -129,7 +129,7 @@ blocks:
     rfdc: 'True'
     samplerate: samp_rate
     type: fc32
-    uri: 192.168.2.1
+    uri: usb:1.6.5
   states:
     bus_sink: false
     bus_source: false
