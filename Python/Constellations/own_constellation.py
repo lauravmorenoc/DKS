@@ -15,7 +15,7 @@ tx_lo = rx_lo
 tx_gain = -10 # -10dB attenuation
 fc0 = int(200e3) # DC signal frequency
 phase_cal = 0 # Phase calibration factor
-
+''
 '''Create Radio'''
 sdr = adi.ad9361(uri='ip:192.168.2.1')
 
@@ -35,45 +35,68 @@ sdr.tx_hardwaregain_chan0 = int(tx_gain)
 sdr.tx_hardwaregain_chan1 = int(-88)
 sdr.tx_buffer_size = int(2**18)
 
-'''Program Tx and Send Data'''
+'Program Tx and Send Data'''
 fs = int(sdr.sample_rate)
+I=0.5 # real part amplitude
+Q=0.5 # imaginary part amplitude
 N = 2**16
 ts = 1 / float(fs)
 t = np.arange(0, N * ts, ts)
-i0 = np.cos(2 * np.pi * t * fc0) * 2 ** 14
-q0 = np.sin(2 * np.pi * t * fc0) * 2 ** 14
+i0 = I*np.cos(2 * np.pi * t * fc0) * 2 ** 14
+q0 = Q*np.sin(2 * np.pi * t * fc0) * 2 ** 14
 iq0 = i0 + 1j * q0
 sdr.tx([iq0,iq0])  # Send Tx data.
 
 # Example read properties
 print("RX LO %s" % (sdr.rx_lo))
 
-# Generating Tx graph for comparison
+''' Generating Tx graph for comparison '''
 fig=plt.figure()
 
-cx=fig.add_subplot(311)
-line1 = cx.plot(t[len(t)-50:len(t)],np.real(iq0)[len(t)-50:len(t)],label="Real Part")
-line2 = cx.plot(t[len(t)-50:len(t)],np.imag(iq0)[len(t)-50:len(t)],label="Imaginary Part")
+# Gettin zeros
+Tx=(i0+q0)/2 ** 14 # transmitted signal
+indices_zero = np.where((Tx[:-1] < 0) & (Tx[1:] > 0))[0]  # Condition for ascending zero crossing
+
+# Estimate period and get peaks
+periods = np.diff(indices_zero)  # Compute differences between successive indices
+T_estimated = np.mean(periods) / fs  # Convert to time in seconds
+indices_peaks=indices_zero[-1:]+math.ceil(np.mean(periods))/4
+
+# Time representation
+cx=fig.add_subplot(221)
+line1 = cx.plot(t[-50:],np.real(iq0)[-50:],label="Real Part")
+line2 = cx.plot(t[-50:],np.imag(iq0)[-50:],label="Imaginary Part")
+scatter1=cx.scatter(t[indices_zero], Tx[indices_zero], color='red', label="Zero crossings", zorder=3)  # Mark detected points
+scatter1=cx.scatter(t[indices_peaks], Tx[indices_peaks], color='green', label="Peaks", zorder=3)  # Mark detected points
 cx.grid(True)
 cx.set_xlabel("Time")
 cx.set_ylabel("Amplitude")
 cx.set_title("Transmitted signal over time (Tx)")
 
-bx=fig.add_subplot(312)
-scatter_b = bx.scatter([],[],label="Tx Signal")
+
+
+# Phasing signal and finding symbol
+Tx_phased=Tx[indices_zero[0]:] # set the 0
+t_phased=np.arange(0, ts*(len(Tx_phased)-1), ts) # new time vector
+I_estimated = (2 / N) * np.sum(Tx_phased * np.cos(2 * np.pi * t_phased / T_estimated))  # Projection onto cos(x)
+Q_estimated = (2 / N) * np.sum(Tx_phased * np.sin(2 * np.pi * t_phased / T_estimated))  # Projection onto sin(x)
+
+
+
+
+
+
+
+# Constelation
+bx=fig.add_subplot(222)
 bx.grid(True)
 bx.set_xlabel("Real part")
 bx.set_ylabel("Imaginary part")
 bx.set_xlim(-1, 1)
 bx.set_ylim(-1, 1)
-bx.set_title("Transmitted Signal (Tx)")
-Tx=iq0
-abs_val_tx=np.abs(Tx)
-index_tx= np.where(abs_val_tx != 0)[0]
-Tx_0 = Tx[index_tx] / abs_val_tx[index_tx]
-pow_re_tx=np.real(Tx_0)
-pow_im_tx=np.imag(Tx_0)
-scatter_b = bx.scatter(pow_re_tx[len(pow_re_tx)-50:len(pow_re_tx)], pow_im_tx[len(pow_im_tx)-50:len(pow_im_tx)])
+bx.set_title("Transmitted Symbol")
+
+
 #'''
 
 ax=fig.add_subplot(313)
