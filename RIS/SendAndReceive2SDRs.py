@@ -63,22 +63,15 @@ plt.ion()  # Enable interactive mode
 for i in range(num_scans):
     data = sdr2.rx()
     Rx_0 = data[0]
-    Rx = Rx_0
-    NumSamples = len(Rx)
-    win = np.hamming(NumSamples)
-    y = Rx * win
-    sp = np.absolute(np.fft.fft(y))
-    sp = sp[1:-1]
-    sp = np.fft.fftshift(sp)
-    s_mag = np.abs(sp) / (np.sum(win)/2)  # Scale FFT by window
-    s_dbfs = 20 * np.log10(s_mag / (2**12))  # Convert to dBFS
-    xf = np.fft.fftfreq(NumSamples, ts)
-    xf = np.fft.fftshift(xf[1:-1]) / 1e6
+    NumSamples = len(Rx_0)
+    psd = np.abs(np.fft.fftshift(np.fft.fft(Rx_0)))**2
+    psd_dB = 10*np.log10(psd)
+    f = np.linspace(samp_rate/-2, samp_rate/2, len(psd))
 
     plt.clf()  # Clear the previous plot
-    plt.plot(xf, s_dbfs, label=f"Scan {i+1}")  # Update plot
+    plt.plot(f/1e6, psd_dB, label=f"Scan {i+1}")  # Update plot
     plt.xlabel("Frequency [MHz]")
-    plt.ylabel("dBFS")
+    plt.ylabel("PSD")
     plt.legend()
     plt.draw()
     plt.pause(0.01)  # Pause to allow real-time update
