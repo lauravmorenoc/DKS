@@ -18,8 +18,8 @@ Plot_Compass = False
 
 
 '''Create Radios'''
-sdr1=adi.ad9361(uri='usb:1.6.5')
-sdr2=adi.ad9361(uri='usb:1.7.5') # Rx
+sdr1=adi.ad9361(uri='usb:1.13.5')
+sdr2=adi.ad9361(uri='usb:1.14.5') # Rx
 
 
 '''Configure properties for the Radio'''
@@ -61,19 +61,33 @@ num_scans=1000
 plt.ion()  # Enable interactive mode
 
 for i in range(num_scans):
+    del data
     data = sdr2.rx()
     Rx_0 = data[0]
     NumSamples = len(Rx_0)
+    '''
     psd = np.abs(np.fft.fftshift(np.fft.fft(Rx_0)))**2
     psd_dB = 10*np.log10(psd)
     f = np.linspace(samp_rate/-2, samp_rate/2, len(psd))
+    '''
+    win = np.hamming(NumSamples)
+    y = Rx_0 * win
+    sp = np.absolute(np.fft.fft(y))
+    sp = sp[1:-1]
+    sp = np.fft.fftshift(sp)
+    s_mag = np.abs(sp) / (np.sum(win)/2)    # Scale FFT by window and /2 since we are using half the FFT spectrum
+    s_dbfs = 20*np.log10(s_mag/(2**12))     # Pluto is a 12 bit ADC, so use that to convert to dBFS
+    xf = np.fft.fftfreq(NumSamples, ts)
+    xf = np.fft.fftshift(xf[1:-1])/1e6
 
     plt.clf()  # Clear the previous plot
-    plt.plot(f/1e6, psd_dB, label=f"Scan {i+1}")  # Update plot
+    plt.plot(xf, s_dbfs, label=f"Scan {i+1}")  # Update plot
     plt.xlabel("Frequency [MHz]")
-    plt.ylabel("PSD")
+    plt.ylabel("dBfs")
     plt.legend()
+    plt.xlim([-0.25, 0.25])
     plt.draw()
+    plt.grid()
     plt.pause(0.01)  # Pause to allow real-time update
 
 plt.ioff()  # Disable interactive mode when done

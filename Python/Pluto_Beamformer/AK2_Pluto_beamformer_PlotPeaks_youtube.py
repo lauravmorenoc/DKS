@@ -37,8 +37,8 @@ print("Set distance between Rx Antennas to ", int(d*1000), "mm")
 ########### SDR 1 ##################
 # sdr = adi.ad9361(uri='ip:192.168.2.1')
 # sdr2 = adi.Pluto(uri='ip:192.168.2.2')
-sdr=adi.ad9361(uri='usb:1.5.5')
-sdr2=adi.Pluto(uri='usb:1.6.5')
+sdr2=sdr=adi.ad9361(uri='usb:1.8.5')
+#sdr2=adi.Pluto(uri='usb:1.9.5')
 
 # sdr = adi.Pluto(uri='ip:192.168.2.2')
 
@@ -124,14 +124,15 @@ ax=fig.add_subplot(111)
 x,y,x2,y2=[0],[0],[0],[0]
 line1, = ax.plot([],[],label="SDR #1")
 line2, = ax.plot([],[],label="SDR #2")
+ax.legend()
 
-ax.set_ylim(-40,-20)
+ax.set_ylim(-100,0)
 #################
 for s in range(1000):
     #plt.clf()
 #############
-    data = sdr.rx()
-    data2 = sdr2.rx()
+    #data = sdr.rx()
+    data=data2 = sdr2.rx()
 
     Rx_0=data[0]
     Rx_1=data2
@@ -144,7 +145,7 @@ for s in range(1000):
     # samp=10*np.log10(samp)
     #print(type(pow))
     #y[s]=pow
-    if s>100:
+    if s>1000:
        x=x[1:len(x)]
        y=y[1:len(y)]
        x2=x2[1:len(x2)]
