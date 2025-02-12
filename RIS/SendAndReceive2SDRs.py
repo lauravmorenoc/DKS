@@ -6,21 +6,21 @@ import math
 
 samp_rate = 2e6    # must be <=30.72 MHz if both channels are enabled
 NumSamples = 2**12
-rx_lo = 2.4e9
+rx_lo = 5.3e9
 rx_mode = "manual"  # can be "manual" or "slow_attack"
 rx_gain0 = 40
 rx_gain1 = 40
 tx_lo = rx_lo
-tx_gain = 0
+tx_gain = -50
 fc0 = int(200e3)
 num_scans = 1000
 Plot_Compass = False
 
 
 '''Create Radios'''
-sdr1=adi.ad9361(uri='usb:1.13.5')
-sdr2=adi.ad9361(uri='usb:1.14.5') # Rx
-
+#sdr1=adi.ad9361(uri='usb:1.1.5')
+#sdr2=adi.ad9361(uri='usb:1.5.5') # Rx
+sdr1=sdr2=adi.ad9361(uri='ip:192.168.2.1')
 
 '''Configure properties for the Radio'''
 sdr1.sample_rate = sdr2.sample_rate = int(samp_rate)
@@ -51,13 +51,16 @@ t = np.arange(0, Tx_time, ts)
 i0 = np.cos(2 * np.pi * t * fc0) * 2 ** 14
 q0 = np.sin(2 * np.pi * t * fc0) * 2 ** 14
 iq0 = (a)*i0 + (b)*1j * q0
-sdr1.tx([iq0,iq0])  # Send Tx data.
+#sdr1.tx([iq0,iq0])  # Send Tx data.
+
+
+
 
 # Collect data
 for r in range(20):    # grab several buffers to give the AGC time to react (if AGC is set to "slow_attack" instead of "manual")
     data = sdr2.rx()
 
-num_scans=1000
+num_scans=10000
 plt.ion()  # Enable interactive mode
 
 for i in range(num_scans):
@@ -66,9 +69,9 @@ for i in range(num_scans):
     Rx_0 = data[0]
     NumSamples = len(Rx_0)
     '''
-    psd = np.abs(np.fft.fftshift(np.fft.fft(Rx_0)))**2
-    psd_dB = 10*np.log10(psd)
-    f = np.linspace(samp_rate/-2, samp_rate/2, len(psd))
+    #psd = np.abs(np.fft.fftshift(np.fft.fft(Rx_0)))**2
+    #psd_dB = 10*np.log10(psd)
+    #f = np.linspace(samp_rate/-2, samp_rate/2, len(psd))
     '''
     win = np.hamming(NumSamples)
     y = Rx_0 * win
@@ -82,6 +85,8 @@ for i in range(num_scans):
 
     plt.clf()  # Clear the previous plot
     plt.plot(xf, s_dbfs, label=f"Scan {i+1}")  # Update plot
+    plt.ylim([-100, 0])
+    #plt.set_
     plt.xlabel("Frequency [MHz]")
     plt.ylabel("dBfs")
     plt.legend()
@@ -89,6 +94,7 @@ for i in range(num_scans):
     plt.draw()
     plt.grid()
     plt.pause(0.01)  # Pause to allow real-time update
+    
 
 plt.ioff()  # Disable interactive mode when done
 plt.show()  # Show final figure (if needed)
