@@ -8,8 +8,8 @@ samp_rate = 2e6    # must be <=30.72 MHz if both channels are enabled
 NumSamples = 2**12
 rx_lo = 5.3e9
 rx_mode = "manual"  # can be "manual" or "slow_attack"
-rx_gain0 = 40
-rx_gain1 = 40
+rx_gain0 = 0
+rx_gain1 = 0
 tx_lo = rx_lo
 tx_gain = -50
 fc0 = int(200e3)
