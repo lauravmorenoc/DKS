@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 
+
+
 # Simulate an unknown sinusoidal signal
 fs = 1000  # Sampling frequency (Hz)
 t = np.arange(0, 1, 1/fs)  # Time vector for 1 second
@@ -10,7 +12,14 @@ I = 2  # Amplitude
 Q = 2
 
 # Generate the sinusoidal signal
-signal = I * np.cos(2 * np.pi * f_real * t) + Q * np.sin(2 * np.pi * f_real * t)
+raw_signal = I * np.cos(2 * np.pi * f_real * t) + Q * np.sin(2 * np.pi * f_real * t)
+
+# Add 0s start and ending
+zeros=[0] * math.ceil(len(raw_signal)/2)
+signal=np.append(zeros, raw_signal)
+signal=np.append(signal,zeros)
+t=np.arange(0,len(signal)/fs,1/fs)
+
 
 # Detect zero crossings with positive slope (start of a new cycle)
 indices_zero = np.where((signal[:-1] < 0) & (signal[1:] > 0))[0]  # Condition for ascending zero crossing
@@ -19,7 +28,6 @@ indices_zero = np.where((signal[:-1] < 0) & (signal[1:] > 0))[0]  # Condition fo
 periods = np.diff(indices_zero)  # Compute differences between successive indices
 T_estimated = np.mean(periods) / fs  # Convert to time in seconds
 indices_peaks=indices_zero[:-1]+math.ceil(np.mean(periods)/4)
-print(indices_peaks)
 
 # Plot the signal and detected points
 plt.figure(figsize=(8, 4))
@@ -35,7 +43,7 @@ plt.grid(True)
 plt.show()
 
 # Print the indices where the signal restarts its cycle
-print("Indices where the signal restarts its cycle:", indices_zero)
+#print("Indices where the signal restarts its cycle:", indices_zero)
 
 # Estimate the period and frequency of the signal
 periods = np.diff(indices_zero)  # Compute differences between successive indices

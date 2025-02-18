@@ -8,10 +8,10 @@ samp_rate = 2e6    # must be <=30.72 MHz if both channels are enabled
 NumSamples = 2**12
 rx_lo = 5.3e9
 rx_mode = "manual"  # can be "manual" or "slow_attack"
-rx_gain0 = 0
+rx_gain0 = 0 # 0 to 50 dB
 rx_gain1 = 0
 tx_lo = rx_lo
-tx_gain = -50
+tx_gain = -50 # -90 to 0 dB
 fc0 = int(200e3)
 num_scans = 1000
 Plot_Compass = False

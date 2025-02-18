@@ -11,7 +11,6 @@
 from PyQt5 import Qt
 from gnuradio import qtgui
 from PyQt5 import QtCore
-from gnuradio import analog
 from gnuradio import gr
 from gnuradio.filter import firdes
 from gnuradio.fft import window
@@ -62,7 +61,7 @@ class Example1(gr.top_block, Qt.QWidget):
         # Variables
         ##################################################
         self.samp_rate = samp_rate = 800000
-        self.LOFreq = LOFreq = int(2.4e9)
+        self.LOFreq = LOFreq = int(5.3e9)
         self.Amp = Amp = 0.001
 
         ##################################################
@@ -87,24 +86,16 @@ class Example1(gr.top_block, Qt.QWidget):
         self.qtgui_sink_x_0.enable_rf_freq(False)
 
         self.top_layout.addWidget(self._qtgui_sink_x_0_win)
-        self.iio_pluto_source_0 = iio.fmcomms2_source_fc32('usb:1.14.5' if 'usb:1.14.5' else iio.get_pluto_uri(), [True, True], 32768)
+        self.iio_pluto_source_0 = iio.fmcomms2_source_fc32('ip:192.168.2.1' if 'ip:192.168.2.1' else iio.get_pluto_uri(), [True, True], 32768)
         self.iio_pluto_source_0.set_len_tag_key('packet_len')
         self.iio_pluto_source_0.set_frequency(LOFreq)
-        self.iio_pluto_source_0.set_samplerate(samp_rate)
+        self.iio_pluto_source_0.set_samplerate(int(2e6))
         self.iio_pluto_source_0.set_gain_mode(0, 'slow_attack')
         self.iio_pluto_source_0.set_gain(0, 64)
         self.iio_pluto_source_0.set_quadrature(True)
         self.iio_pluto_source_0.set_rfdc(True)
         self.iio_pluto_source_0.set_bbdc(True)
         self.iio_pluto_source_0.set_filter_params('Auto', '', 0, 0)
-        self.iio_pluto_sink_0 = iio.fmcomms2_sink_fc32('usb:1.13.5' if 'usb:1.13.5' else iio.get_pluto_uri(), [True, True], 32768, True)
-        self.iio_pluto_sink_0.set_len_tag_key('')
-        self.iio_pluto_sink_0.set_bandwidth(20000000)
-        self.iio_pluto_sink_0.set_frequency(LOFreq)
-        self.iio_pluto_sink_0.set_samplerate(samp_rate)
-        self.iio_pluto_sink_0.set_attenuation(0, 10.0)
-        self.iio_pluto_sink_0.set_filter_params('Auto', '', 0, 0)
-        self.analog_sig_source_x_0 = analog.sig_source_c(samp_rate, analog.GR_COS_WAVE, 200000, 1, 0, 0)
         self._Amp_range = qtgui.Range(0.001, 1, 0.01, 0.001, 200)
         self._Amp_win = qtgui.RangeWidget(self._Amp_range, self.set_Amp, "'Amp'", "counter_slider", float, QtCore.Qt.Horizontal)
         self.top_layout.addWidget(self._Amp_win)
@@ -113,7 +104,6 @@ class Example1(gr.top_block, Qt.QWidget):
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.analog_sig_source_x_0, 0), (self.iio_pluto_sink_0, 0))
         self.connect((self.iio_pluto_source_0, 0), (self.qtgui_sink_x_0, 0))
 
 
@@ -130,9 +120,6 @@ class Example1(gr.top_block, Qt.QWidget):
 
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
-        self.analog_sig_source_x_0.set_sampling_freq(self.samp_rate)
-        self.iio_pluto_sink_0.set_samplerate(self.samp_rate)
-        self.iio_pluto_source_0.set_samplerate(self.samp_rate)
         self.qtgui_sink_x_0.set_frequency_range(self.LOFreq, self.samp_rate)
 
     def get_LOFreq(self):
@@ -140,7 +127,6 @@ class Example1(gr.top_block, Qt.QWidget):
 
     def set_LOFreq(self, LOFreq):
         self.LOFreq = LOFreq
-        self.iio_pluto_sink_0.set_frequency(self.LOFreq)
         self.iio_pluto_source_0.set_frequency(self.LOFreq)
         self.qtgui_sink_x_0.set_frequency_range(self.LOFreq, self.samp_rate)
 
