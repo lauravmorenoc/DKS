@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 
-
+''' Doesn't work for signals with noise'''
 
 # Simulate an unknown sinusoidal signal
 fs = 1000  # Sampling frequency (Hz)

@@ -32,7 +32,7 @@ def add_noise(signal, snr_db):
     
     return noisy_signal
 
-def  Mueller_Muller_clock_recovery(samples):
+def  Mueller_Muller_clock_recovery(samples,):
     mu = 0 # initial estimate of phase of sample
     out = np.zeros(len(samples) + 10, dtype=np.complex64)
     out_rail = np.zeros(len(samples) + 10, dtype=np.complex64) # stores values, each iteration we need the previous 2 values plus current value
