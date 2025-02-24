@@ -102,8 +102,8 @@ def generate_msequence(m):
 
 ''' Variables '''
 
-samp_rate = 2e6    # must be <=30.72 MHz if both channels are enabled
-NumSamples = 2**12 # buffer size 
+samp_rate = 6e5    # must be <=30.72 MHz if both channels are enabled
+NumSamples = 2**12 # buffer size (4096)
 rx_lo = 5.3e9
 rx_mode = "manual"  # can be "manual" or "slow_attack"
 rx_gain = 0 # 0 to 50 dB
@@ -141,33 +141,38 @@ for r in range(20):    # grab several buffers to give the AGC time to react (if 
 
 
 scanning_time=30 # seconds
-pause=0.01
+pause=0.00001
 # num_scans=int(scanning_time/ts)
 scanning_ts=pause+NumSamples*ts
 num_scans=int(scanning_time/scanning_ts)
 peaks=[-60]
 plt.ion()  # Enable interactive mode
-corr_peaks=[0]
 corr_final=[0]
 
 for i in range(num_scans):
     del data
+    corr_peaks=[0]
     data = sdr.rx()
     Rx = data[0]
-    [xf, s_dbfs]=get_fft(Rx)
+    #[xf, s_dbfs]=get_fft(Rx)
     envelope=np.abs(Rx)/2**12
     env_mean=np.mean(envelope)
     envelope-=env_mean
-    peaks=np.append(peaks,np.max(s_dbfs)) # saves fft peak
-    peaks=np.max(s_dbfs)
+    #peaks=np.append(peaks,np.max(s_dbfs)) # saves fft peak
+    #peaks=np.max(s_dbfs)
     #time=np.linspace(0, i*ts,len(peaks))
     
 
     peak_mean=np.mean(peaks)
     peaks-=peak_mean
 
-    for h in range(len(mseq)):
+    for h in range(int(len(mseq)/2)):
         mseq_upsampled_new=np.append([0]*h*sps, mseq_upsampled[len([0]*h*sps):])
+        correlation= correlate(mseq_upsampled_new, envelope, mode='full')
+        corr_peaks=np.append(corr_peaks, np.max(correlation))
+    
+    for h in range(int(len(mseq)/2)):
+        mseq_upsampled_new=np.append(mseq_upsampled[-len([0]*h*sps):], [0]*h*sps)
         correlation= correlate(mseq_upsampled_new, envelope, mode='full')
         corr_peaks=np.append(corr_peaks, np.max(correlation))
     

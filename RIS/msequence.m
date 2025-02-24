@@ -15,7 +15,15 @@ sleep_time=1; % seconds
 
 % Generate m-sequence
 m = 6;                          % LFSR order (m), from 1 to 6
-mseq = generate_msequence(m);
+poly = [1 0 0 0 0 1 1];  % Primitive polynom para m=6
+init_state1 = [1 0 0 0 0 1];  % Estado inicial para la secuencia m original
+init_state2 = [1 1 0 0 0 1];  % Estado inicial diferente para la secuencia ortogonal
+mseq = generate_msequence(m, poly, init_state1);
+gold_seq = generate_gold_sequence(m, poly, init_state1, init_state2);
+
+% Verify orthogonality through dot product
+dot_product = sum((2 * mseq - 1) .* (2 * gold_seq - 1));
+disp(['Doct product (must be around 0 for orthogonality: ', num2str(dot_product)]);
 
 ris=ris_init('COM6', 115200);   % initialize RIS
 
@@ -54,49 +62,43 @@ function ris = ris_init(port, baud)
     end
 end
 
-function mseq = generate_msequence(m)
+function mseq = generate_msequence(m, poly, init_state)
     % Generates an m-sequence (maximum-length sequence) using an LFSR.
     %
     % Parameters:
     %   m (int): Order of the LFSR (register length).
+    %   poly (array): The primitive polynomial for feedback taps.
+    %   init_state (array): Initial state of the LFSR (must be of length m).
+    %
     % Returns:
-    %   mseq (1D array): Generated m-sequence of length 2^m - 1.
+    %   mseq (array): Generated m-sequence.
 
-    % Length of the sequence
-    N = 2^m - 1;
-
-    % Primitive polynomials for different m values
-    % These determine the feedback taps for the LFSR.
-    primitivePolynomials = {
-        [1 1],       % m = 1
-        [1 1 1],     % m = 2
-        [1 0 1 1],   % m = 3
-        [1 0 0 1 1], % m = 4
-        [1 0 0 0 1 1], % m = 5
-        [1 0 0 0 0 1 1]  % m = 6
-    };
-
-    if m > length(primitivePolynomials)
-        error('Primitive polynomial for m=%d is not available.', m);
-    end
-
-    % Get the corresponding primitive polynomial
-    poly = primitivePolynomials{m};
-
-    % Initialize LFSR with all ones
-    lfsr = ones(1, m);
-    mseq = zeros(1, N);
-
-    % Generate the m-sequence
+    N = 2^m - 1;  % Length of the m-sequence
+    lfsr = init_state;  % Initialize LFSR with the initial state
+    mseq = zeros(1, N);  % Output m-sequence
+    
     for i = 1:N
         mseq(i) = lfsr(end);  % Output bit (last bit in LFSR)
 
-        % Compute feedback (XOR of selected taps)
+        % Compute feedback using XOR of selected taps
         feedback = mod(sum(lfsr(poly(2:end) == 1)), 2);
-
+        
         % Shift LFSR and insert new bit
         lfsr = [feedback, lfsr(1:end-1)];
     end
+end
+
+function gold_seq = generate_gold_sequence(m, poly, init_state1, init_state2)
+    % Generates a Gold sequence that is orthogonal to the m-sequence generated
+
+    % Generate the original m-sequence
+    mseq1 = generate_msequence(m, poly, init_state1);
+    
+    % Generate a second m-sequence with a different initial state
+    mseq2 = generate_msequence(m, poly, init_state2);
+    
+    % Generate the Gold sequence by XORing the two m-sequences
+    gold_seq = mod(mseq1 + mseq2, 2);
 end
 
 function ris_sequence(ris, high, low, sequence, period, duration, sleep_time)
