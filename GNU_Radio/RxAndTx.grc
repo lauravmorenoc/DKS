@@ -54,27 +54,6 @@ blocks:
     coordinate: [1088, 0.0]
     rotation: 0
     state: enabled
-- name: F_m
-  id: variable_qtgui_range
-  parameters:
-    comment: ''
-    gui_hint: ''
-    label: ''
-    min_len: '200'
-    orient: QtCore.Qt.Horizontal
-    rangeType: int
-    start: '3000000000'
-    step: '100000000'
-    stop: '1000000000'
-    value: '3000000000'
-    widget: counter_slider
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [616, 24.0]
-    rotation: 0
-    state: disabled
 - name: LOFreq
   id: variable
   parameters:
@@ -85,6 +64,27 @@ blocks:
     bus_source: false
     bus_structure: null
     coordinate: [424, 40.0]
+    rotation: 0
+    state: enabled
+- name: Tx_att
+  id: variable_qtgui_range
+  parameters:
+    comment: ''
+    gui_hint: ''
+    label: ''
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: int
+    start: '0'
+    step: '10'
+    stop: '70'
+    value: '0'
+    widget: counter_slider
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [616, 24.0]
     rotation: 0
     state: enabled
 - name: samp_rate
@@ -127,7 +127,7 @@ blocks:
   parameters:
     affinity: ''
     alias: ''
-    attenuation1: '10.0'
+    attenuation1: Tx_att
     bandwidth: '20000000'
     buffer_size: '32768'
     comment: ''
@@ -140,7 +140,7 @@ blocks:
     len_tag_key: ''
     samplerate: samp_rate
     type: fc32
-    uri: usb:1.13.5
+    uri: usb:1.16.5
   states:
     bus_sink: false
     bus_source: false
@@ -162,9 +162,9 @@ blocks:
     fpass: '0'
     frequency: LOFreq
     fstop: '0'
-    gain1: '''slow_attack'''
+    gain1: '''manual'''
     len_tag_key: packet_len
-    manual_gain1: '64'
+    manual_gain1: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
     quadrature: 'True'

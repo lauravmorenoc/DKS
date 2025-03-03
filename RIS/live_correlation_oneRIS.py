@@ -48,55 +48,6 @@ def show_fft(xf, s_dbfs):
     plt.grid()
     plt.pause(0.01)  # Pause to allow real-time update
 
-def generate_m_sequence(m, taps, seed=1):
-    import numpy as np
-
-def generate_msequence(m):
-    """
-    Generates an m-sequence (maximum-length sequence) using an LFSR.
-
-    Parameters:
-        m (int): Order of the LFSR (register length).
-
-    Returns:
-        mseq (numpy array): Generated m-sequence of length 2^m - 1.
-    """
-    # Length of the sequence
-    N = 2**m - 1
-
-    # Primitive polynomials for different m values
-    # These determine the feedback taps for the LFSR.
-    primitive_polynomials = {
-        1: [1, 1],        # m = 1
-        2: [1, 1, 1],     # m = 2
-        3: [1, 0, 1, 1],  # m = 3
-        4: [1, 0, 0, 1, 1],  # m = 4
-        5: [1, 0, 0, 0, 1, 1],  # m = 5
-        6: [1, 0, 0, 0, 0, 1, 1]  # m = 6
-    }
-
-    if m not in primitive_polynomials:
-        raise ValueError(f"Primitive polynomial for m={m} is not available.")
-
-    # Get the corresponding primitive polynomial
-    poly = primitive_polynomials[m]
-
-    # Initialize LFSR with all ones
-    lfsr = np.ones(m, dtype=int)
-    mseq = np.zeros(N, dtype=int)
-
-    # Generate the m-sequence
-    for i in range(N):
-        mseq[i] = lfsr[-1]  # Output bit (last bit in LFSR)
-
-        # Compute feedback (XOR of selected taps)
-        feedback = np.mod(np.sum(lfsr[np.where(np.array(poly[1:]) == 1)]), 2)
-
-        # Shift LFSR and insert new bit
-        lfsr = np.roll(lfsr, 1)
-        lfsr[0] = feedback
-
-    return mseq
 
 
 
@@ -115,16 +66,17 @@ RIS_seq_period=0.001
 
 '''Create Radios'''
 
-sdr=adi.ad9361(uri='ip:192.168.2.1')
+#sdr=adi.ad9361(uri='ip:192.168.2.1')
+sdr=adi.ad9361(uri='usb:1.14.5')
 [fs, ts]=conf_sdr(sdr, samp_rate, fc0, rx_lo, rx_mode, rx_gain,NumSamples)
 
 
-''' Pre-designed sequence '''
-m = 6  
-mseq = generate_msequence(m) # generate sequence
+''' Pre-designed sequence ''' 
+#mseq = [0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1]
+mseq = [0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1]
 amp=1 # signal amplitude
 mseq= np.where(mseq == 0, amp, -amp) # rearange sequence so 0=amp, 1=-amp
-sps= int(RIS_seq_period/ts) # samples per symbo
+sps= int(RIS_seq_period/ts) # samples per symbol
 mseq_upsampled=np.repeat(mseq, sps) # upsample sequence
 
 plt.plot(mseq_upsampled)
@@ -154,23 +106,17 @@ for i in range(num_scans):
     corr_peaks=[0]
     data = sdr.rx()
     Rx = data[0]
-    #[xf, s_dbfs]=get_fft(Rx)
     envelope=np.abs(Rx)/2**12
     env_mean=np.mean(envelope)
     envelope-=env_mean
-    #peaks=np.append(peaks,np.max(s_dbfs)) # saves fft peak
-    #peaks=np.max(s_dbfs)
-    #time=np.linspace(0, i*ts,len(peaks))
-    
 
-    peak_mean=np.mean(peaks)
-    peaks-=peak_mean
-
+    # Correlates appending 0s at the beginning
     for h in range(int(len(mseq)/2)):
         mseq_upsampled_new=np.append([0]*h*sps, mseq_upsampled[len([0]*h*sps):])
         correlation= correlate(mseq_upsampled_new, envelope, mode='full')
         corr_peaks=np.append(corr_peaks, np.max(correlation))
     
+    # Correlates appending 0s at the end
     for h in range(int(len(mseq)/2)):
         mseq_upsampled_new=np.append(mseq_upsampled[-len([0]*h*sps):], [0]*h*sps)
         correlation= correlate(mseq_upsampled_new, envelope, mode='full')
@@ -180,10 +126,8 @@ for i in range(num_scans):
     time=np.linspace(0, i*scanning_ts,len(corr_final))
 
     plt.clf()  # Clear the previous plot
-    #plt.plot(time*1e6,peaks, label=f"Scan {i+1}")  # Update plot
     plt.plot(time, corr_final, label=f"Scan {i+1}")  # Update plot
     #plt.ylim([-100, 0])
-    #plt.set_
     plt.xlabel("time (s)")
     plt.ylabel("dBfs peak")
     plt.legend()

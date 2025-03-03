@@ -18,9 +18,9 @@ Plot_Compass = False
 
 
 '''Create Radios'''
-#sdr1=adi.ad9361(uri='usb:1.1.5')
-#sdr2=adi.ad9361(uri='usb:1.5.5') # Rx
-sdr1=sdr2=adi.ad9361(uri='ip:192.168.2.1')
+sdr1=adi.ad9361(uri='usb:1.18.5')
+sdr2=adi.ad9361(uri='usb:1.14.5') # Rx
+#sdr1=sdr2=adi.ad9361(uri='ip:192.168.2.1')
 
 '''Configure properties for the Radio'''
 sdr1.sample_rate = sdr2.sample_rate = int(samp_rate)
@@ -73,6 +73,8 @@ for i in range(num_scans):
     #psd_dB = 10*np.log10(psd)
     #f = np.linspace(samp_rate/-2, samp_rate/2, len(psd))
     '''
+
+
     win = np.hamming(NumSamples)
     y = Rx_0 * win
     sp = np.absolute(np.fft.fft(y))
