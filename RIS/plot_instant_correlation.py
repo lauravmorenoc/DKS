@@ -79,7 +79,7 @@ amp=1 # signal amplitude
 mseq1= np.where(mseq1 == 0, amp, -amp) # rearange sequence so 0=amp, 1=-amp
 mseq2= np.where(mseq2 == 0, amp, -amp) # rearange sequence so 0=amp, 1=-amp
 #sps= int(RIS_seq_period/ts) # samples per symbol
-sps=30000
+sps=17000
 mseq_upsampled1=np.repeat(mseq1, sps) # upsample sequence
 mseq_upsampled2=np.repeat(mseq2, sps) # upsample sequence
 
@@ -103,9 +103,10 @@ for i in range(1):
     corr_peaks_second_seq=[0]
     data = sdr.rx()
     Rx = data[0]
+    Rx=Rx[::30]
     envelope=np.abs(Rx)/NumSamples
     env_mean=np.mean(envelope)
-    #envelope-=env_mean
+    envelope-=env_mean
 
     # Correlates appending 0s at the beginning
 

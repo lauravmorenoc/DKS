@@ -51,8 +51,7 @@ def show_fft(xf, s_dbfs):
 ''' Variables '''
 
 samp_rate = 5.3e5    # must be <=30.72 MHz if both channels are enabled (530000)
-#NumSamples = 600000 # buffer size (4096)
-NumSamples = 300000 # buffer size (4096)
+NumSamples = 600000 # buffer size (4096)
 rx_lo = 5.3e9
 rx_mode = "manual"  # can be "manual" or "slow_attack"
 rx_gain = 0 # 0 to 50 dB
@@ -60,7 +59,8 @@ tx_lo = rx_lo
 tx_gain = -50 # -90 to 0 dB
 fc0 = int(200e3)
 RIS_seq_period=0.001 
-
+err1=[1]
+err2=[1]
 
 '''Create Radios'''
 
@@ -71,60 +71,71 @@ sdr=adi.ad9361(uri='usb:1.8.5')
 
 ''' Pre-designed sequence '''
 
-#mseq1=np.array([0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1])
-#mseq2=np.array([0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1])
-mseq1=np.array([0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1])
-mseq2=np.array([0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1])
-
+mseq1=np.array([0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1])
+mseq2=np.array([0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1])
 M=len(mseq1)
 amp=1 # signal amplitude
 mseq1= np.where(mseq1 == 0, amp, -amp) # rearange sequence so 0=amp, 1=-amp
 mseq2= np.where(mseq2 == 0, amp, -amp) # rearange sequence so 0=amp, 1=-amp
-#sps= int(RIS_seq_period/ts) # samples per symbol
 sps=17000/30
 mseq_upsampled1=np.repeat(mseq1, sps) # upsample sequence
 mseq_upsampled2=np.repeat(mseq2, sps) # upsample sequence
 M_up = M*sps
-
-'''fig, ax=plt.subplots()'''
-#ax.plot(mseq_upsampled)
-#ax.plot(gold_seq_upsampled)
-#plt.draw()
-#plt.grid()
-#plt.show()
-
 
 '''Collect data'''
 
 for r in range(20):    # grab several buffers to give the AGC time to react (if AGC is set to "slow_attack" instead of "manual")
     data = sdr.rx()
 
-
 scanning_time=30 # seconds
 pause=0.00001
-# num_scans=int(scanning_time/ts)
 scanning_ts=pause+NumSamples*ts
 num_scans=int(scanning_time/scanning_ts)
 peaks=[-60]
-#plt.ion()  # Enable interactive mode
-#corr_final_first_seq=[0]
-#corr_final_second_seq=[0]
-
 
 fig=plt.figure()
 bx=fig.add_subplot(111)
 line1, = bx.plot([],[],label="RIS #1",marker='*')
 line2, = bx.plot([],[],label="RIS #2")
+line3,=bx.plot([],[],label="TH1")
+line4,=bx.plot([],[],label="TH2")
 bx.legend()
+fig2=plt.figure()
+cx=fig2.add_subplot(111)
+line5, = cx.plot([],[],label="error 1")
+line6, = cx.plot([],[],label="error 2")
+cx.legend()
 s=0
 
-#fig2=plt.figure()
-#cx=fig2.add_subplot(111)
-#line2, = cx.plot([],[],label="RIS #2")
+''' Finding threshold '''
+
+corr_peaks_first_seq=[0]
+corr_peaks_second_seq=[0]
+corr_final_first_seq=[0]
+corr_final_second_seq=[0]
+
+for j in range(10):
+    data = sdr.rx()
+    Rx = data[0]
+    envelope=np.abs(Rx)/2**12
+    env_mean=np.mean(envelope)
+    envelope-=env_mean
+    envelope=envelope/np.max(envelope)
+    corr_peaks_first_seq=np.abs(correlate(mseq_upsampled1, envelope, mode='full'))/M_up # normalized
+    corr_peaks_second_seq=np.abs(correlate(mseq_upsampled2, envelope, mode='full'))/M_up # normalized
+    corr_final_first_seq=np.append(corr_final_first_seq, np.max(corr_peaks_first_seq))
+    corr_final_second_seq=np.append(corr_final_second_seq, np.max(corr_peaks_second_seq))
+
+th_1=np.mean(corr_final_first_seq[1:])
+th_2=np.mean(corr_final_second_seq[1:])
+print('Threshold found: ')
+print('TH1= ')
+print(th_1)
+print('TH2= ')
+print(th_2)
 
 corr_av_1=0
 corr_av_2=0
-
 for i in range(1000):
     corr_final_first_seq=[0]
     corr_final_second_seq=[0]
@@ -146,73 +157,43 @@ for i in range(1000):
 
     corr_av_1=np.append(corr_av_1,np.mean(corr_final_first_seq[1:]))
     corr_av_2=np.append(corr_av_2,np.mean(corr_final_second_seq[1:]))
+
+    '''Finding error'''
+    if(np.mean(corr_final_first_seq[1:])>5*th_1):
+        err1=np.append(err1,0)
+    else:
+        err1=np.append(err1,1)
+    if(np.mean(corr_final_second_seq[1:])>5*th_2):
+        err2=np.append(err2,0)
+    else:
+        err2=np.append(err2,1)
+
         
-
-    # Correlates appending 0s at the beginning
-    '''
-    for h in range(int(len(mseq1)/2)):
-        mseq_upsampled_new1=np.append([0]*h*sps, mseq_upsampled1[len([0]*h*sps):])
-        mseq_upsampled_new2=np.append([0]*h*sps, mseq_upsampled2[len([0]*h*sps):])
-
-        correlation_first_seq= np.abs(correlate(mseq_upsampled_new1, envelope, mode='full')/M) # normalized
-        correlation_second_seq= np.abs(correlate(mseq_upsampled_new2, envelope, mode='full')/M) # normalized
-
-        corr_peaks_first_seq=np.append(corr_peaks_first_seq, np.max(correlation_first_seq))
-        corr_peaks_second_seq=np.append(corr_peaks_second_seq, np.max(correlation_second_seq))
-    
-    # Correlates appending 0s at the end
-    for h in range(int(len(mseq2)/2)):
-        mseq_upsampled_new1=np.append(mseq_upsampled1[-len([0]*h*sps):], [0]*h*sps)
-        mseq_upsampled_new2=np.append(mseq_upsampled2[-len([0]*h*sps):], [0]*h*sps)
-
-        correlation_first_seq= np.abs(correlate(mseq_upsampled_new1, envelope, mode='full')/M)
-        correlation_second_seq= np.abs(correlate(mseq_upsampled_new2, envelope, mode='full')/M)
-
-        corr_peaks_first_seq=np.append(corr_peaks_first_seq, np.max(correlation_first_seq))
-        corr_peaks_second_seq=np.append(corr_peaks_second_seq, np.max(correlation_second_seq))
-        '''
-    #corr_peaks_first_seq=np.abs(correlate(mseq_upsampled1, envelope, mode='full'))/M_up # normalized
-    #corr_peaks_second_seq=np.abs(correlate(mseq_upsampled2, envelope, mode='full'))/M_up # normalized
-
-    #corr_final_first_seq=np.append(corr_final_first_seq, np.max(corr_peaks_first_seq))
-    #corr_final_second_seq=np.append(corr_final_second_seq, np.max(corr_peaks_second_seq))
-
-
-    #time=np.linspace(0, i*scanning_ts,len(corr_final_first_seq))
     time=np.linspace(0, i*scanning_ts,len(corr_av_1))
      
     '''AK'''
     if(len(time)>fs*5):
      time =time[len(time)-fs*5:]
-
-    # corr_final_first_seq= corr_final_first_seq[len(corr_final_first_seq)-int(len(corr_final_first_seq)*0.5):]
-    # corr_final_second_seq= corr_final_first_seq[len(corr_final_second_seq)-int(len(corr_final_second_seq)*0.5):]
-    #plt.clf()  # Clear the previous plot
-    #bx.plot(time, corr_final_first_seq, label=f"Scan {i+1}")
-    #bx.plot(time, corr_final_second_seq, label=f"Scan {i+1}")
+    
     line1.set_xdata(time)
-    #line1.set_ydata(corr_final_first_seq)
     line1.set_ydata(corr_av_1)
     line2.set_xdata(time)
-    #line2.set_ydata(corr_final_second_seq)
     line2.set_ydata(corr_av_2)
-    #bx.set_ylim([0,np.max([np.max(corr_final_first_seq), np.max(corr_final_second_seq)])])
+    line3.set_xdata(time)
+    line3.set_ydata([th_1]*len(corr_av_1))
+    line4.set_xdata(time)
+    line4.set_ydata([th_2]*len(corr_av_2))
+    line5.set_xdata(time)
+    line5.set_ydata(err1)
+    line6.set_xdata(time)
+    line6.set_ydata(err2)
     bx.set_ylim([0,np.max([np.max(corr_av_1), np.max(corr_av_2)])])
     bx.set_xlim([0,np.max(time)])
-
-    #cx.set_ylim([-2,4])
-    #cx.set_xlim([0,np.max(time)])
-    #plt.xlabel("time (s)")
-    #plt.ylabel("Correlation peaks")
-    #plt.legend()
-    #plt.draw()
-    #plt.grid()
+    cx.set_ylim([-1,2])
+    cx.set_xlim([0,np.max(time)])
     plt.pause(pause)  # Pause to allow real-time update
     
 
-    
-
-#plt.ioff()  # Disable interactive mode when done
 plt.show()  # Show final figure (if needed)
 
 sdr.tx_destroy_buffer()
