@@ -2,7 +2,6 @@ import adi            # Gives access to pluto commands
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import correlate
-#from graphics import *
 import math
 import tkinter as tk
 import threading
@@ -12,75 +11,40 @@ import threading
 import time
 import numpy as np
 import matplotlib.pyplot as plt
-
-
-import tkinter as tk
+import time
 import random
-# Global references for Tkinter objects
-root = None
-visualizer = []
 
-def initialize_tkinter():
-    """ Initializes the Tkinter window once and keeps it running. """
-    global root, visualizer
+class BinaryStateVisualizer:
+    def __init__(self):
+        self.states = [0, 0, 0, 0]  # Initial states
 
-    if root is not None:
-        return  # If Tkinter is already running, do nothing
+        # Set up the figure
+        self.fig, self.ax = plt.subplots()
+        centers = [(0,-0.5), (0,1), (1,-0.5), (1,1)]
+        labels = ["Círculo 1", "Círculo 2", "Círculo 3", "Círculo 4"]
+        self.circles = [plt.Circle(center, 0.4, fc='red', edgecolor='black') for center in centers]
 
-    root = tk.Tk()
-    root.title("Binary State Visualization")
+        for circle in self.circles:
+            self.ax.add_patch(circle)
 
-    # Define variable names
-    variable_names = ["Variable 1", "Variable 2", "Variable 3", "Variable 4"]
+        self.ax.set_xlim(-1, 2)
+        self.ax.set_ylim(-1, 2)
+        self.ax.set_aspect('equal')
+        self.ax.axis('off')
 
-    # Create a frame for layout
-    frame = tk.Frame(root)
-    frame.pack()
+        plt.ion()  # Turn on interactive mode
+        plt.show()
 
-    # Create labels and canvases for each variable in a 2-row layout
-    for i in range(4):
-        row = 0 if i < 2 else 2
-        col = i % 2
-        label = tk.Label(frame, text=variable_names[i], font=("Arial", 12))
-        label.grid(row=row, column=col, pady=5)
+    def update_states(self, new_states):
+        """Update the binary states (list of 4 elements: 0 or 1)."""
+        if len(new_states) == 4:
+            self.states = new_states
+            for i, circle in enumerate(self.circles):
+                circle.set_facecolor('green' if self.states[i] else 'red')  # Change color
+            self.fig.canvas.draw()  # Ensure the figure updates
+            plt.pause(0.1)  # Small pause to allow GUI refresh
 
-        canvas = tk.Canvas(frame, width=100, height=100, bg="red")
-        canvas.grid(row=row+1, column=col, padx=10, pady=5)
-
-        visualizer.append(canvas)
     
-
-    # Start Tkinter mainloop in the main thread (non-blocking)
-    root.after(100, check_updates)  # Keeps checking for updates
-    root.mainloop()
-
-def visualize_binary_state(states):
-    """
-    Updates the colors dynamically in a thread-safe manner using `after()`.
-    
-    Parameters:
-        states (tuple or list of 4 elements): Binary values (0 or 1).
-    """
-    
-    #global root, visualizer
-    if root is None:
-        initialize_tkinter()  # Start Tkinter if not already running
-
-    if len(states) != 4:
-        raise ValueError("Input must be a tuple or list with exactly 4 binary values (0 or 1).")
-
-    # Use `after()` to ensure thread safety
-    root.after(0, lambda: update_visualizer(states))
-
-def update_visualizer(states):
-    """ Updates the Tkinter canvas colors in a thread-safe way. """
-    for i in range(4):
-        color = "green" if states[i] == 1 else "red"
-        visualizer[i].config(bg=color)
-
-def check_updates():
-    """ Keeps Tkinter responsive and able to receive updates. """
-    root.after(100, check_updates)  # Keeps running this function
 
 def conf_sdr(sdr, samp_rate, fc0, rx_lo, rx_mode, rx_gain,buffer_size):
     '''Configure properties for the Radio'''
@@ -174,7 +138,7 @@ scanning_ts=pause+NumSamples*ts
 num_scans=int(scanning_time/scanning_ts)
 peaks=[-60]
 
-fig=plt.figure()
+'''fig=plt.figure()
 bx=fig.add_subplot(111)
 line1, = bx.plot([],[],label="RIS #1",marker='*')
 line2, = bx.plot([],[],label="RIS #2")
@@ -185,7 +149,7 @@ fig2=plt.figure()
 cx=fig2.add_subplot(111)
 line5, = cx.plot([],[],label="error 1")
 line6, = cx.plot([],[],label="error 2")
-cx.legend()
+cx.legend()'''
 s=0
 
 ''' Finding threshold '''
@@ -210,91 +174,73 @@ for j in range(th_cycles):
 
 th_1=threshold_factor*np.mean(corr_final_first_seq[1:])
 th_2=threshold_factor*np.mean(corr_final_second_seq[1:])
-#print('Threshold found: ')
-#print('TH1= ')
-#print(th_1)
-#print('TH2= ')
-#print(th_2)
-initialize_tkinter()
+
 print('Moving on')
 corr_av_1=0
 corr_av_2=0
-for i in range(1000):
-    corr_final_first_seq=[0]
-    corr_final_second_seq=[0]
-    del data
-    for j in range(num_av_corr):
-        corr_peaks_first_seq=[0]
-        corr_peaks_second_seq=[0]
-        data = sdr.rx()
-        Rx = data[0]
-        Rx=Rx[::downsample_factor]
-        envelope=np.abs(Rx)/2**12
-        env_mean=np.mean(envelope)
-        envelope-=env_mean
-        envelope=envelope/np.max(envelope)
-        corr_peaks_first_seq=np.abs(correlate(mseq_upsampled1, envelope, mode='full'))/M_up # normalized
-        corr_peaks_second_seq=np.abs(correlate(mseq_upsampled2, envelope, mode='full'))/M_up # normalized
-        corr_final_first_seq=np.append(corr_final_first_seq, np.max(corr_peaks_first_seq))
-        corr_final_second_seq=np.append(corr_final_second_seq, np.max(corr_peaks_second_seq))
+if __name__ == "__main__":
+    visualizer = BinaryStateVisualizer()
+try:
+           
 
-    corr_av_1=np.append(corr_av_1,np.mean(corr_final_first_seq[1:]))
-    corr_av_2=np.append(corr_av_2,np.mean(corr_final_second_seq[1:]))
+    for i in range(1000):
+        corr_final_first_seq=[0]
+        corr_final_second_seq=[0]
+        del data
+        for j in range(num_av_corr):
+            corr_peaks_first_seq=[0]
+            corr_peaks_second_seq=[0]
+            data = sdr.rx()
+            Rx = data[0]
+            Rx=Rx[::downsample_factor]
+            envelope=np.abs(Rx)/2**12
+            env_mean=np.mean(envelope)
+            envelope-=env_mean
+            envelope=envelope/np.max(envelope)
+            corr_peaks_first_seq=np.abs(correlate(mseq_upsampled1, envelope, mode='full'))/M_up # normalized
+            corr_peaks_second_seq=np.abs(correlate(mseq_upsampled2, envelope, mode='full'))/M_up # normalized
+            corr_final_first_seq=np.append(corr_final_first_seq, np.max(corr_peaks_first_seq))
+            corr_final_second_seq=np.append(corr_final_second_seq, np.max(corr_peaks_second_seq))
+
+        corr_av_1=np.append(corr_av_1,np.mean(corr_final_first_seq[1:]))
+        corr_av_2=np.append(corr_av_2,np.mean(corr_final_second_seq[1:]))
+        
+        RIS_1 =0
+        RIS_2=0
+
+        RIS_1_state= np.abs((np.mean(corr_final_first_seq[1:])>th_1)*1)
+        RIS_2_state= np.abs((np.mean(corr_final_second_seq[1:])>th_2)*1)
+        err1=np.append(err1,np.abs(RIS_1-(np.mean(corr_final_first_seq[1:])>th_1)*1))
+        err2=np.append(err2,np.abs(RIS_2-(np.mean(corr_final_second_seq[1:])>th_2)*1))
+
+        visualizer.update_states((RIS_1,RIS_2,int(RIS_1_state),int(RIS_2_state)))
+            
+        time=np.linspace(0, i*scanning_ts,len(corr_av_1))
+        
+        '''AK'''
+        if(len(time)>fs*5):
+            time =time[len(time)-fs*5:]
+        
+        '''line1.set_xdata(time)
+        line1.set_ydata(corr_av_1)
+        line2.set_xdata(time)
+        line2.set_ydata(corr_av_2)
+        line3.set_xdata(time)
+        line3.set_ydata([th_1]*len(corr_av_1))
+        line4.set_xdata(time)
+        line4.set_ydata([th_2]*len(corr_av_2))
+        line5.set_xdata(time)
+        line5.set_ydata(err1)
+        line6.set_xdata(time)
+        line6.set_ydata(err2)
+        bx.set_ylim([0,1.2*np.max([np.max(corr_av_1), np.max(corr_av_2),th_1,th_2])])
+        bx.set_xlim([0,np.max(time)])
+        cx.set_ylim([-1,2])
+        cx.set_xlim([0,np.max(time)])'''
+        plt.pause(pause)  # Pause to allow real-time update'''
     
-    RIS_1 =0
-    RIS_2=0
-
-    #print(int(np.mean(corr_final_first_seq[1:])>th_1=='True'))
-    #print(np.mean(corr_final_first_seq[1:]))
-    #print(th_1)
-    #print(np.mean(corr_final_first_seq[1:])>th_1)
-    RIS_1_state= np.abs((np.mean(corr_final_first_seq[1:])>th_1)*1)
-    RIS_2_state= np.abs((np.mean(corr_final_second_seq[1:])>th_2)*1)
-    err1=np.append(err1,np.abs(RIS_1-(np.mean(corr_final_first_seq[1:])>th_1)*1))
-    err2=np.append(err2,np.abs(RIS_2-(np.mean(corr_final_second_seq[1:])>th_2)*1))
-
-    #err1=np.append(err1,np.abs(RIS_1-int(np.mean(corr_final_first_seq[1:])>th_1=='true')))
-    #err2=np.append(err2,np.abs(RIS_2-int(np.mean(corr_final_second_seq[1:])>th_2=='true')))
-
-    '''Finding error'''
-    #if(np.mean(corr_final_first_seq[1:])>(5*th_1)):
-     #   err1=np.append(err1,1-RIS_1)
-    #else:
-     #   err1=np.append(err1,1)
-    #if(np.mean(corr_final_second_seq[1:])>(5*th_2)):
-     #   err2=np.append(err2,0)
-    #else:
-     #   err2=np.append(err2,1)
-    #print(int(RIS_1_state))
-    # Start the Tkinter interface in the main thread
-    #visualize_binary_state((random.randint(0, 1),0,int(RIS_1_state),int(RIS_2_state)))#   ERA ESTE
-    visualize_binary_state((0,0,1,1))
-    print("function passed")
-    #time.sleep(1)
-    time=np.linspace(0, i*scanning_ts,len(corr_av_1))
-     
-    '''AK'''
-    '''if(len(time)>fs*5):
-     time =time[len(time)-fs*5:]
-    
-    line1.set_xdata(time)
-    line1.set_ydata(corr_av_1)
-    line2.set_xdata(time)
-    line2.set_ydata(corr_av_2)
-    line3.set_xdata(time)
-    line3.set_ydata([th_1]*len(corr_av_1))
-    line4.set_xdata(time)
-    line4.set_ydata([th_2]*len(corr_av_2))
-    line5.set_xdata(time)
-    line5.set_ydata(err1)
-    line6.set_xdata(time)
-    line6.set_ydata(err2)
-    bx.set_ylim([0,1.2*np.max([np.max(corr_av_1), np.max(corr_av_2),th_1,th_2])])
-    bx.set_xlim([0,np.max(time)])
-    cx.set_ylim([-1,2])
-    cx.set_xlim([0,np.max(time)])
-    plt.pause(pause)  # Pause to allow real-time update'''
-    
+except KeyboardInterrupt:
+    pass
 
 
 plt.show()  # Show final figure (if needed)'''
