@@ -33,7 +33,7 @@ options:
     state: enabled
 
 blocks:
-- name: Amp
+- name: Atten
   id: variable_qtgui_range
   parameters:
     comment: ''
@@ -42,10 +42,10 @@ blocks:
     min_len: '200'
     orient: QtCore.Qt.Horizontal
     rangeType: float
-    start: '0.001'
-    step: '0.01'
-    stop: '1'
-    value: '0.001'
+    start: '0'
+    step: '10'
+    stop: ' 89.75'
+    value: '0'
     widget: counter_slider
   states:
     bus_sink: false
@@ -64,6 +64,18 @@ blocks:
     bus_source: false
     bus_structure: null
     coordinate: [424, 40.0]
+    rotation: 0
+    state: enabled
+- name: USB
+  id: variable
+  parameters:
+    comment: ''
+    value: '"usb:1.4.5"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [520, 40.0]
     rotation: 0
     state: enabled
 - name: samp_rate
@@ -85,7 +97,7 @@ blocks:
     alias: ''
     amp: '1'
     comment: ''
-    freq: '200000'
+    freq: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
     offset: '0'
@@ -106,7 +118,7 @@ blocks:
   parameters:
     affinity: ''
     alias: ''
-    attenuation1: '0'
+    attenuation1: Atten
     bandwidth: '20000000'
     buffer_size: '32768'
     comment: ''
@@ -119,7 +131,7 @@ blocks:
     len_tag_key: ''
     samplerate: samp_rate
     type: fc32
-    uri: usb:1.9.5
+    uri: USB
   states:
     bus_sink: false
     bus_source: false
@@ -133,7 +145,7 @@ blocks:
     affinity: ''
     alias: ''
     bandwidth: '20000000'
-    bbdc: 'True'
+    bbdc: 'False'
     buffer_size: '32768'
     comment: ''
     filter: ''
@@ -147,10 +159,10 @@ blocks:
     maxoutbuf: '0'
     minoutbuf: '0'
     quadrature: 'True'
-    rfdc: 'True'
+    rfdc: 'False'
     samplerate: int(2e6)
     type: fc32
-    uri: usb:1.9.5
+    uri: USB
   states:
     bus_sink: false
     bus_source: false

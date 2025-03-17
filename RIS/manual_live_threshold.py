@@ -2,13 +2,10 @@ import adi            # Gives access to pluto commands
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import correlate
-import math
-import tkinter as tk
-import threading
-''' Functions '''
-import time
-import random
+from multiprocessing import Process
+import keyboard
 
+''' Functions '''
 
 class BinaryStateVisualizer:
     def __init__(self):
@@ -106,7 +103,7 @@ def calculate_threshold(sdr,th_cycles,downsample_factor,mseq_upsampled1, mseq_up
             corr_array_second_seq=np.abs(correlate(mseq_upsampled2, envelope, mode='full'))/M_up # normalized
             corr_final_second_seq=np.append(corr_final_second_seq, np.max(corr_array_second_seq))
         th_2=threshold_factor_seq2*np.mean(corr_final_second_seq[1:])
-        print('Threshold for RIS 2 found. TH2= ')
+        print('Threshold for RIS 1 found. TH1= ')
         print(th_2)
     elif ((user_input=='N')or(user_input=='n')):
         print('Processed cancelled. Threshold for RIS 2 set to 0. Moving on.')
@@ -119,13 +116,75 @@ def calculate_threshold(sdr,th_cycles,downsample_factor,mseq_upsampled1, mseq_up
 
     return th_1, th_2
 
-#visualizer = BinaryStateVisualizer()
-#visualizer.update_states((1,1))
-''' Variables '''
+def main():
 
+    corr_array_first_seq=[0]
+    corr_array_second_seq=[0]
+    window_size = 30 # int(num_reads * keep_percent)
+    corr_av_1=[]
+    corr_av_2=[]
+    t=[]
+    averaging_factor=10
+    if __name__ == "__main__":
+        visualizer = BinaryStateVisualizer()
+        try:
+            for i in range(num_reads):
+            
+                if(len(corr_av_1)>averaging_factor):
+                    corr_array_first_seq=corr_array_first_seq[-averaging_factor:]
+                    corr_array_second_seq=corr_array_second_seq[-averaging_factor:]
+                
+                t=np.append(t,i)
+                data = sdr.rx()
+                Rx = data[0]
+                Rx=Rx[::downsample_factor]
+                envelope=np.abs(Rx)/2**12
+                env_mean=np.mean(envelope)
+                envelope-=env_mean
+                envelope=envelope/np.max(envelope)
+
+                corr_array_first_seq=np.append(corr_array_first_seq,np.max(np.abs(correlate(mseq_upsampled1, envelope, mode='full'))/M_up)) # saves all the peaks for seq 1 correlation
+                corr_array_second_seq=np.append(corr_array_second_seq,np.max(np.abs(correlate(mseq_upsampled2, envelope, mode='full'))/M_up)) # saves all the peaks for seq 2 correlation
+
+                corr_av_1=np.append(corr_av_1, np.mean(corr_array_first_seq))
+                corr_av_2=np.append(corr_av_2, np.mean(corr_array_second_seq))
+
+                RIS_1_state= np.abs((corr_av_1[-1:]>th_1)*1)
+                RIS_2_state= np.abs((corr_av_2[-1:]>th_2)*1)
+
+                visualizer.update_states((int(RIS_1_state),int(RIS_2_state)))
+                    
+                if i>window_size:
+                    t=t[-window_size:]
+                    corr_av_1=corr_av_1[-window_size:]
+                    corr_av_2=corr_av_2[-window_size:]
+
+
+                line1.set_data(t,corr_av_1)
+                line2.set_data(t,corr_av_2)
+                line3.set_data(t,[th_1]*len(corr_av_1))
+                line4.set_data(t,[th_2]*len(corr_av_2))
+
+                bx.relim()
+                bx.autoscale_view()
+
+                plt.draw()
+                plt.pause(0.01)
+        except KeyboardInterrupt:
+            pass
+    plt.ioff()
+    plt.show()
+
+    #plt.show()  # Show final figure (if needed)'''
+
+    sdr.tx_destroy_buffer()
+    if i>40: print('\a')    # for a long capture, beep when the script is done
+
+
+
+''' Variables '''
 samp_rate = 5.3e5    # must be <=30.72 MHz if both channels are enabled (530000)
-#NumSamples = 300000 # buffer size (4096)
-NumSamples = 300000
+NumSamples = 300000 # buffer size (4096)
 rx_lo = 5.3e9
 rx_mode = "manual"  # can be "manual" or "slow_attack"
 rx_gain = 0 # 0 to 50 dB
@@ -135,12 +194,11 @@ err2=[1]
 
 ''' Control Variables '''
 threshold_factor_seq1=3
-threshold_factor_seq2=3
+threshold_factor_seq2=5
 num_av_corr=5
 downsample_factor=180
 th_cycles=10
 num_reads=10000
-averaging_factor=5
 
 '''Create Radios'''
 
@@ -149,11 +207,10 @@ sdr=adi.ad9361(uri='usb:1.7.5')
 [fs, ts]=conf_sdr(sdr, samp_rate, fc0, rx_lo, rx_mode, rx_gain,NumSamples)
 
 
-''' Pre-designed sequences '''
+''' Pre-designed sequence '''
+
 mseq1=np.array([0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0])
 mseq2=np.array([0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1])
-#mseq1=np.array([0,0,1,1,1,1,0,0])
-#mseq2=np.array([0,0,1,1,0,0,1,1])
 M=len(mseq1)
 amp=1 # signal amplitude
 mseq1= np.where(mseq1 == 0, amp, -amp) # rearange sequence so 0=amp, 1=-amp
@@ -185,98 +242,13 @@ bx.set_ylabel("Correlation Amplitude")
 s=0
 
 ''' Finding threshold '''
-
-corr_array_first_seq=[0]
-corr_array_second_seq=[0]
-corr_final_first_seq=[0]
-corr_final_second_seq=[0]
-
 th_1,th_2=calculate_threshold(sdr,th_cycles,downsample_factor,mseq_upsampled1, mseq_upsampled2,M_up, threshold_factor_seq1, threshold_factor_seq2)
-        
 
-#time_total=np.linspace(0,num_reads,num_reads)
-#time_total=np.linspace(0,10,10)
-#keep_percent=0.9
-window_size = 30#int(num_reads * keep_percent)
-#RIS_1=0
-#RIS_2=0
-corr_av_1=[]
-corr_av_2=[]
-t=[]
-corr_final_first_seq=[0]
-corr_final_second_seq=[0]
-
-if __name__ == "__main__":
-   visualizer = BinaryStateVisualizer()
-   try:
-    for i in range(num_reads):
-       
-        if(len(corr_av_1)>averaging_factor):
-            #corr_av_1=corr_av_1[-averaging_factor:]
-            #corr_av_2=corr_av_2[-averaging_factor:]
-            corr_array_first_seq=corr_array_first_seq[-averaging_factor:]
-            corr_array_second_seq=corr_array_second_seq[-averaging_factor:]
-            #t=t[-averaging_factor:]
-          
-        t=np.append(t,i)
-        data = sdr.rx()
-        Rx = data[0]
-        Rx=Rx[::downsample_factor]
-        envelope=np.abs(Rx)/2**12
-        env_mean=np.mean(envelope)
-        envelope-=env_mean
-        envelope=envelope/np.max(envelope)
-        #corr_array_first_seq=np.abs(correlate(mseq_upsampled1, envelope, mode='full'))/M_up # normalized
-        #corr_array_second_seq=np.abs(correlate(mseq_upsampled2, envelope, mode='full'))/M_up # normalized
-        corr_array_first_seq=np.append(corr_array_first_seq,np.max(np.abs(correlate(mseq_upsampled1, envelope, mode='full'))/M_up)) # saves all the peaks for seq 1 correlation
-        corr_array_second_seq=np.append(corr_array_second_seq,np.max(np.abs(correlate(mseq_upsampled2, envelope, mode='full'))/M_up)) # saves all the peaks for seq 2 correlation
-
-        '''
-        if (len(corr_av_1)>0):
-            #corr_av_1=np.append(corr_av_1, np.mean([corr_av_1[-1], np.max(corr_array_first_seq)]))
-            #corr_av_2=np.append(corr_av_2, np.mean([corr_av_2[-1], np.max(corr_array_second_seq)]))
-        else:
-            #corr_av_1=np.append(corr_av_1, np.max(corr_array_first_seq))
-            #corr_av_2=np.append(corr_av_2, np.max(corr_array_second_seq))
-        '''
-        corr_av_1=np.append(corr_av_1, np.mean(corr_array_first_seq))
-        corr_av_2=np.append(corr_av_2, np.mean(corr_array_second_seq))
-
-        #RIS_1_state= np.abs((np.mean(corr_final_first_seq[1:])>th_1)*1)
-        #RIS_2_state= np.abs((np.mean(corr_final_second_seq[1:])>th_2)*1)
-
-        RIS_1_state= np.abs((corr_av_1[-1:]>th_1)*1)
-        RIS_2_state= np.abs((corr_av_2[-1:]>th_2)*1)
-
-        #err1=np.append(err1,np.abs(RIS_1-(np.mean(corr_final_first_seq[1:])>th_1)*1))
-        #err2=np.append(err2,np.abs(RIS_2-(np.mean(corr_final_second_seq[1:])>th_2)*1))
-
-        #visualizer.update_states((int(RIS_1_state),RIS_1,int(RIS_2_state),RIS_2))
-        visualizer.update_states((int(RIS_1_state),int(RIS_2_state)))
-            
-        #time_=np.linspace(0, i*scanning_ts,len(corr_av_1))
-        if i>window_size:
-            t=t[-window_size:]
-            corr_av_1=corr_av_1[-window_size:]
-            corr_av_2=corr_av_2[-window_size:]
-
-
-        line1.set_data(t,corr_av_1)
-        line2.set_data(t,corr_av_2)
-        line3.set_data(t,[th_1]*len(corr_av_1))
-        line4.set_data(t,[th_2]*len(corr_av_2))
-
-        bx.relim()
-        bx.autoscale_view()
-
-        plt.draw()
-        plt.pause(0.01)
-   except KeyboardInterrupt:
-    pass
-plt.ioff()
-plt.show()
-
-#plt.show()  # Show final figure (if needed)'''
-
-sdr.tx_destroy_buffer()
-if i>40: print('\a')    # for a long capture, beep when the script is done
+if __name__ == '__main__':
+    process = Process(target=main)
+    process.start()
+    while process.is_alive():
+        if keyboard.is_pressed('q'):
+            process.terminate()
+            break
+#main()

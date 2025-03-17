@@ -51,20 +51,18 @@ def show_fft(xf, s_dbfs):
 ''' Variables '''
 
 samp_rate = 5.3e5    # must be <=30.72 MHz if both channels are enabled
-NumSamples = 200000 # buffer size (4096)
+NumSamples = 300000 # buffer size (4096)
 rx_lo = 5.3e9
 rx_mode = "manual"  # can be "manual" or "slow_attack"
 rx_gain = 0 # 0 to 50 dB
-tx_lo = rx_lo
-tx_gain = -50 # -90 to 0 dB
 fc0 = int(200e3)
-RIS_seq_period=1e-4 
+downsample_factor=30
 
 
 '''Create Radios'''
 
 '''sdr=adi.ad9361(uri='ip:192.168.2.1')'''
-sdr=adi.ad9361(uri='usb:1.8.5')
+sdr=adi.ad9361(uri='usb:1.5.5')
 [fs, ts]=conf_sdr(sdr, samp_rate, fc0, rx_lo, rx_mode, rx_gain,NumSamples)
 
 
@@ -79,9 +77,10 @@ amp=1 # signal amplitude
 mseq1= np.where(mseq1 == 0, amp, -amp) # rearange sequence so 0=amp, 1=-amp
 mseq2= np.where(mseq2 == 0, amp, -amp) # rearange sequence so 0=amp, 1=-amp
 #sps= int(RIS_seq_period/ts) # samples per symbol
-sps=17000
+sps=18750
 mseq_upsampled1=np.repeat(mseq1, sps) # upsample sequence
 mseq_upsampled2=np.repeat(mseq2, sps) # upsample sequence
+M_up = M*sps
 
 
 '''Collect data'''
@@ -97,14 +96,14 @@ peaks=[-60]
 corr_final_first_seq=[0]
 corr_final_second_seq=[0]
 
-for i in range(1):
+for i in range(1000):
     del data
     corr_peaks_first_seq=[0]
     corr_peaks_second_seq=[0]
     data = sdr.rx()
     Rx = data[0]
-    Rx=Rx[::30]
-    envelope=np.abs(Rx)/NumSamples
+    Rx=Rx[::downsample_factor]
+    envelope=np.abs(Rx)/2**12
     env_mean=np.mean(envelope)
     envelope-=env_mean
 
@@ -117,18 +116,13 @@ for i in range(1):
     #corr_final_second_seq=np.append(corr_final_second_seq, np.max(corr_peaks_second_seq))
 
 
-    time=np.linspace(0, i*scanning_ts,len(corr_final_first_seq))
-     
-    '''AK'''
-    if(len(time)>fs*5):
-     time =time[len(time)-fs*5:]
 
     plt.clf()  # Clear the previous plot
     plt.plot(envelope, label="Envelope")
     #plt.plot(mseq_upsampled1, label="mseq1")
     #plt.ylim([-100, 0])
-    plt.xlabel("time (s)")
-    plt.ylabel("dBfs peak")
+    plt.xlabel("samples")
+    plt.ylabel("amplitude")
     plt.legend()
     #plt.xlim([-0.25, 0.25])
     plt.draw()

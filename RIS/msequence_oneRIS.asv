@@ -18,7 +18,7 @@ sleep_time=0;
 % mseq=[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1]; % RIS 1
 mseq1=[0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0];
 mseq2=[0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1];
-mseq=mseq2;
+mseq=mseq1;
 ris=ris_init('COM7', 115200);   % initialize RIS
 
 ris_sequence(ris, high, low, mseq, period, duration, sleep_time)
