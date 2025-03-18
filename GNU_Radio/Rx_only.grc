@@ -70,7 +70,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '"usb:1.4.5"'
+    value: '"usb:1.13.5"'
   states:
     bus_sink: false
     bus_source: false
@@ -82,7 +82,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '800000'
+    value: '500000'
   states:
     bus_sink: false
     bus_source: false

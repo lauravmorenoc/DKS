@@ -12,15 +12,16 @@ rx_gain0 = 0 # 0 to 50 dB
 rx_gain1 = 0
 tx_lo = rx_lo
 tx_gain = -50 # -90 to 0 dB
-fc0 = int(200e3)
+#fc0 = int(200e3)
+fc0 = 0
 num_scans = 1000
 Plot_Compass = False
 
 
 '''Create Radios'''
-sdr1=adi.ad9361(uri='usb:1.18.5')
-sdr2=adi.ad9361(uri='usb:1.14.5') # Rx
-#sdr1=sdr2=adi.ad9361(uri='ip:192.168.2.1')
+#sdr1=adi.ad9361(uri='usb:1.18.5')
+#sdr2=adi.ad9361(uri='usb:1.14.5') # Rx
+sdr1=sdr2=adi.ad9361(uri='usb:1.14.5')
 
 '''Configure properties for the Radio'''
 sdr1.sample_rate = sdr2.sample_rate = int(samp_rate)

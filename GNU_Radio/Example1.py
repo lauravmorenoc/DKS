@@ -61,8 +61,8 @@ class Example1(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = 800000
-        self.USB = USB = "usb:1.4.5"
+        self.samp_rate = samp_rate = 500000
+        self.USB = USB = "usb:1.13.5"
         self.LOFreq = LOFreq = int(5.3e9)
         self.Atten = Atten = 0
 

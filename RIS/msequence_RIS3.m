@@ -17,18 +17,11 @@ sleep_time=0;
 time_in_between=period/4;
 
 % m sequences
-%mseq1=[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1]; % RIS 1
-%mseq2=[0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1]; % RIS 2
-%mseq1=[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1];
-%mseq1=[0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0];
-%mseq2=[0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1];
-
-%seq_0=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]; 
-%seq_1=[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
-
-mseq1=ones(1,16);%[0,0,0,0,1,0,1,0,1,0,0,0,0,1,1,0];
-mseq2=ones(1,16);%[1,1,0,1,1,1,0,0,0,1,0,1,1,1,0,1];
-mseq3=[0,0,1,1,0,1,1,1,0,0,1,1,0,0,0,0];
+%mseq1=ones(1,16);%[0,0,0,0,1,0,1,0,1,0,0,0,0,1,1,0];
+%mseq2=ones(1,16);%[1,1,0,1,1,1,0,0,0,1,0,1,1,1,0,1];
+mseq1=[0,0,0,0,1,0,1,0,1,0,0,0,0,1,1,0];
+mseq2=[1,1,0,1,1,1,0,0,0,1,0,1,1,1,0,1];
+mseq3=[0,0,1,1,0,1,1,1,1,0,1,1,0,1,0,0];
 
 ris1=ris_init('COM6', 115200);   % initialize RIS 1
 ris2=ris_init('COM7', 115200);   % initialize RIS 2
@@ -96,6 +89,7 @@ function ris_two_seqs(ris1, ris2,  ris3, high, low, sequence1, sequence2,  seque
             writeline(ris1, currentPattern1);
             pause(time_in_between);
             writeline(ris2, currentPattern2);
+            pause(time_in_between);
             writeline(ris3, currentPattern3);
             % Get response
             response = readline(ris1);
@@ -103,7 +97,6 @@ function ris_two_seqs(ris1, ris2,  ris3, high, low, sequence1, sequence2,  seque
             response = readline(ris2);
             %fprintf("Response from setting a pattern to RIS 2: %s\n", response);
             response = readline(ris3);
-
             time=time+period;
             pause(period);
         end

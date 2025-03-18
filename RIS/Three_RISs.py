@@ -161,7 +161,7 @@ err1=[1]
 err2=[1]
 
 ''' Control Variables '''
-threshold_factor_seq1=3
+threshold_factor_seq1=4
 threshold_factor_seq2=3
 threshold_factor_seq3=3
 num_av_corr=5
@@ -172,7 +172,7 @@ averaging_factor=5
 '''Create Radios'''
 
 '''sdr=adi.ad9361(uri='ip:192.168.2.1')'''
-sdr=adi.ad9361(uri='usb:1.7.5')
+sdr=adi.ad9361(uri='usb:1.14.5')
 [fs, ts]=conf_sdr(sdr, samp_rate, fc0, rx_lo, rx_mode, rx_gain,NumSamples)
 
 
@@ -182,7 +182,7 @@ sdr=adi.ad9361(uri='usb:1.7.5')
 #mseq2=np.array([0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1])
 mseq1=np.array([0,0,0,0,1,0,1,0,1,0,0,0,0,1,1,0])
 mseq2=np.array([1,1,0,1,1,1,0,0,0,1,0,1,1,1,0,1])
-mseq3=np.array([0,0,1,1,0,1,1,1,0,0,1,1,0,0,0,0])
+mseq3=np.array([0,0,1,1,0,1,1,1,1,0,1,1,0,1,0,0])
 M=len(mseq1)
 amp=1 # signal amplitude
 mseq1= np.where(mseq1 == 0, amp, -amp) # rearange sequence so 0=amp, 1=-amp
@@ -201,8 +201,6 @@ M_up = M*sps
 for r in range(5):    # grab several buffers to give the AGC time to react (if AGC is set to "slow_attack" instead of "manual")
     data = sdr.rx()
 
-pause=0.00001
-scanning_ts=pause+NumSamples*ts
 plt.ion()
 fig=plt.figure()
 bx=fig.add_subplot(111)
@@ -228,9 +226,6 @@ corr_array_third_seq=[0]
 th_1,th_2,th_3=calculate_threshold(sdr,th_cycles,downsample_factor,mseq_upsampled1,mseq_upsampled2,mseq_upsampled3,M_up, threshold_factor_seq1, threshold_factor_seq2, threshold_factor_seq3)
         
 window_size = 30
-RIS_1=0
-RIS_2=0
-RIS_3=0
 corr_av_1=[]
 corr_av_2=[]
 corr_av_3=[]

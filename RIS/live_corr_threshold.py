@@ -145,9 +145,8 @@ averaging_factor=5
 '''Create Radios'''
 
 '''sdr=adi.ad9361(uri='ip:192.168.2.1')'''
-sdr=adi.ad9361(uri='usb:1.7.5')
+sdr=adi.ad9361(uri='usb:1.14.5')
 [fs, ts]=conf_sdr(sdr, samp_rate, fc0, rx_lo, rx_mode, rx_gain,NumSamples)
-
 
 ''' Pre-designed sequences '''
 mseq1=np.array([0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0])

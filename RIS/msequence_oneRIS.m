@@ -18,8 +18,14 @@ sleep_time=0;
 % mseq=[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1]; % RIS 1
 mseq1=[0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0];
 mseq2=[0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1];
-mseq=mseq2;
-ris=ris_init('COM7', 115200);   % initialize RIS
+
+% Sequences for 3 RIS testing 
+mseq3_1=[0,0,0,0,1,0,1,0,1,0,0,0,0,1,1,0];
+mseq3_2=[1,1,0,1,1,1,0,0,0,1,0,1,1,1,0,1];
+mseq3_3=[0,0,1,1,0,1,1,1,0,0,1,1,0,0,0,0];
+
+mseq=mseq3_1;
+ris=ris_init('COM6', 115200);   % initialize RIS
 
 ris_sequence(ris, high, low, mseq, period, duration, sleep_time)
 
