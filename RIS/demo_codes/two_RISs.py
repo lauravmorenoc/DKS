@@ -2,24 +2,17 @@ import adi            # Gives access to pluto commands
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import correlate
-import math
-import tkinter as tk
-import threading
-''' Functions '''
-import time
-import random
 
+
+''' Functions '''
 
 class BinaryStateVisualizer:
     def __init__(self):
-        #self.states = [0, 0, 0, 0]  # Initial states
         self.states = [0, 0]  # Initial states
 
         # Set up the figure
         self.fig, self.ax = plt.subplots(figsize=(3, 3))
-        #centers = [(-0.3,-0.5), (-0.3,1), (1.3,-0.5), (1.3,1)]
         centers = [(-0.3,-0.5),(1.3,-0.5)]
-        #labels = ["RIS 1 detected", "RIS 1", "RIS 2 detected", "RIS 2"]
         labels = ["RIS 1", "RIS 2"]
         self.circles = [plt.Circle(center, 0.3, fc='red', edgecolor='black') for center in centers]
 
@@ -89,7 +82,8 @@ def calculate_threshold(sdr,th_cycles,downsample_factor,mseq_upsampled1, mseq_up
         print('Processed cancelled. Threshold for RIS 1 set to 0. Moving on.')
         th_1=0
     else:
-        print('Invalid answer')
+        print('Invalid answer. Threshold for RIS 1 set to 0. Moving on.')
+        th_1=0
 
     user_input = input("Initiate RIS 2 threshold process? Y/N ")
     print(f"Answered: {user_input}")
@@ -112,26 +106,23 @@ def calculate_threshold(sdr,th_cycles,downsample_factor,mseq_upsampled1, mseq_up
         print('Processed cancelled. Threshold for RIS 2 set to 0. Moving on.')
         th_2=0
     else:
-        print('Invalid answer')
+        print('Invalid answer. Threshold for RIS 2 set to 0. Moving on.')
+        th_2=0
     
     user_input = input("Press any key and then enter to continue running code")
     print("Moving on")
 
     return th_1, th_2
 
-#visualizer = BinaryStateVisualizer()
-#visualizer.update_states((1,1))
+
 ''' Variables '''
 
 samp_rate = 5.3e5    # must be <=30.72 MHz if both channels are enabled (530000)
-#NumSamples = 300000 # buffer size (4096)
-NumSamples = 300000
+NumSamples = 300000 # buffer size (4096)
 rx_lo = 5.3e9
 rx_mode = "manual"  # can be "manual" or "slow_attack"
 rx_gain = 0 # 0 to 50 dB
 fc0 = int(200e3)
-err1=[1]
-err2=[1]
 
 ''' Control Variables '''
 threshold_factor_seq1=3
@@ -151,8 +142,6 @@ sdr=adi.ad9361(uri='usb:1.14.5')
 ''' Pre-designed sequences '''
 mseq1=np.array([0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0])
 mseq2=np.array([0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1])
-#mseq1=np.array([0,0,1,1,1,1,0,0])
-#mseq2=np.array([0,0,1,1,0,0,1,1])
 M=len(mseq1)
 amp=1 # signal amplitude
 mseq1= np.where(mseq1 == 0, amp, -amp) # rearange sequence so 0=amp, 1=-amp
@@ -193,12 +182,7 @@ corr_final_second_seq=[0]
 th_1,th_2=calculate_threshold(sdr,th_cycles,downsample_factor,mseq_upsampled1, mseq_upsampled2,M_up, threshold_factor_seq1, threshold_factor_seq2)
         
 
-#time_total=np.linspace(0,num_reads,num_reads)
-#time_total=np.linspace(0,10,10)
-#keep_percent=0.9
 window_size = 30#int(num_reads * keep_percent)
-#RIS_1=0
-#RIS_2=0
 corr_av_1=[]
 corr_av_2=[]
 t=[]
@@ -211,11 +195,8 @@ if __name__ == "__main__":
     for i in range(num_reads):
        
         if(len(corr_av_1)>averaging_factor):
-            #corr_av_1=corr_av_1[-averaging_factor:]
-            #corr_av_2=corr_av_2[-averaging_factor:]
             corr_array_first_seq=corr_array_first_seq[-averaging_factor:]
             corr_array_second_seq=corr_array_second_seq[-averaging_factor:]
-            #t=t[-averaging_factor:]
           
         t=np.append(t,i)
         data = sdr.rx()
@@ -225,35 +206,17 @@ if __name__ == "__main__":
         env_mean=np.mean(envelope)
         envelope-=env_mean
         envelope=envelope/np.max(envelope)
-        #corr_array_first_seq=np.abs(correlate(mseq_upsampled1, envelope, mode='full'))/M_up # normalized
-        #corr_array_second_seq=np.abs(correlate(mseq_upsampled2, envelope, mode='full'))/M_up # normalized
         corr_array_first_seq=np.append(corr_array_first_seq,np.max(np.abs(correlate(mseq_upsampled1, envelope, mode='full'))/M_up)) # saves all the peaks for seq 1 correlation
         corr_array_second_seq=np.append(corr_array_second_seq,np.max(np.abs(correlate(mseq_upsampled2, envelope, mode='full'))/M_up)) # saves all the peaks for seq 2 correlation
 
-        '''
-        if (len(corr_av_1)>0):
-            #corr_av_1=np.append(corr_av_1, np.mean([corr_av_1[-1], np.max(corr_array_first_seq)]))
-            #corr_av_2=np.append(corr_av_2, np.mean([corr_av_2[-1], np.max(corr_array_second_seq)]))
-        else:
-            #corr_av_1=np.append(corr_av_1, np.max(corr_array_first_seq))
-            #corr_av_2=np.append(corr_av_2, np.max(corr_array_second_seq))
-        '''
         corr_av_1=np.append(corr_av_1, np.mean(corr_array_first_seq))
         corr_av_2=np.append(corr_av_2, np.mean(corr_array_second_seq))
-
-        #RIS_1_state= np.abs((np.mean(corr_final_first_seq[1:])>th_1)*1)
-        #RIS_2_state= np.abs((np.mean(corr_final_second_seq[1:])>th_2)*1)
 
         RIS_1_state= np.abs((corr_av_1[-1:]>th_1)*1)
         RIS_2_state= np.abs((corr_av_2[-1:]>th_2)*1)
 
-        #err1=np.append(err1,np.abs(RIS_1-(np.mean(corr_final_first_seq[1:])>th_1)*1))
-        #err2=np.append(err2,np.abs(RIS_2-(np.mean(corr_final_second_seq[1:])>th_2)*1))
-
-        #visualizer.update_states((int(RIS_1_state),RIS_1,int(RIS_2_state),RIS_2))
         visualizer.update_states((int(RIS_1_state),int(RIS_2_state)))
             
-        #time_=np.linspace(0, i*scanning_ts,len(corr_av_1))
         if i>window_size:
             t=t[-window_size:]
             corr_av_1=corr_av_1[-window_size:]
@@ -274,8 +237,6 @@ if __name__ == "__main__":
     pass
 plt.ioff()
 plt.show()
-
-#plt.show()  # Show final figure (if needed)'''
 
 sdr.tx_destroy_buffer()
 if i>40: print('\a')    # for a long capture, beep when the script is done
