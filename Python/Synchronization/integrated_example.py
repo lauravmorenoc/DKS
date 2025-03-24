@@ -1,4 +1,4 @@
-'''Time Sync Example'''
+'''Fine Frequency Synchronization'''
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -34,21 +34,71 @@ h *= np.hamming(N) # window the filter to make sure it decays to 0 on both sides
 h /= np.sum(h) # normalize to get unity gain, we don't want to change the amplitude/power
 samples = np.convolve(samples_nd, h) # apply filter
 
-plt.figure(1)
-plt.plot(samples_nd, '.-', label='Original')
-plt.plot(samples, '.-', label='Delayed')
+'''plt.figure(1)
+plt.plot(samples_nd, '.-')
+plt.plot(samples, '.-')
 plt.grid(True)
 plt.xlim([0, 150])
-plt.legend()
-plt.show()
+plt.title('Adding a time delay')
+plt.show()'''
 
 '''Adding a Frequency Offset'''
 
+'''plt.subplot(2,1,1) # Before freq shift
+plt.plot(np.real(samples), '.-', label='I')
+plt.plot(np.imag(samples), '.-', label='Q')
+plt.grid(True)
+plt.legend()
+plt.title('Before adding frequency offset')
+plt.xlim([0, 150])'''
+
+# apply a freq offset
 fs = 1e6 # assume our sample rate is 1 MHz
 fo = 1000 # simulate freq offset
 Ts = 1/fs # calc sample period
 t = np.arange(0, Ts*len(samples), Ts) # create time vector
 samples = samples * np.exp(1j*2*np.pi*fo*t) # perform freq shift
+samples_no_corrected=samples
+
+'''plt.subplot(2,1,2) # Before freq shift
+plt.plot(np.real(samples), '.-', label='I')
+plt.plot(np.imag(samples), '.-', label='Q')
+plt.grid(True)
+plt.legend()
+plt.xlim([0, 150])
+plt.title('After adding frequency offset')
+plt.show()'''
+
+
+'''Normal FFT: Before Squaring'''
+
+psd = np.fft.fftshift(np.abs(np.fft.fft(samples)))
+f = np.linspace(-fs/2.0, fs/2.0, len(psd))
+'''plt.plot(f, psd)
+plt.title('FFT before squaring (signal psd hides the offset)')
+plt.show()'''
+
+'''FFT After Squaring'''
+N=2
+samples_sqr = samples**N # we square it because it is a BPSK signal. It depends on the modulation order. For a QPSK it would be squaring two times (N=4)
+psd = np.fft.fftshift(np.abs(np.fft.fft(samples_sqr)))
+f = np.linspace(-fs/2.0, fs/2.0, len(psd))
+'''plt.plot(f, psd)
+plt.title('FFT after squaring (freq. offset peak visible)')
+plt.show()'''
+
+max_freq =f[np.argmax(psd)] 
+print('Frequency offset: ', max_freq/N, ' Hz')
+
+'''Applying Coarse Freq. Offset Correction'''
+samples = samples * np.exp(-1j*2*np.pi*max_freq*t/N)
+#samples = samples * np.exp(-1j*2*np.pi*fo*t)
+samples_exp = samples**N # We square again to see if we removed the peak
+psd = np.fft.fftshift(np.abs(np.fft.fft(samples_exp)))
+f = np.linspace(-fs/2.0, fs/2.0, len(psd))
+'''plt.plot(f, psd)
+plt.title('FFT after squaring and removing freq. offset (coarse)')
+plt.show()'''
 
 '''Time Synchronization with Interpolation'''
 samples_interpolated = signal.resample_poly(samples, 16, 1)
@@ -71,36 +121,5 @@ while i_out < len(samples) and i_in+16 < len(samples):
     mu = mu - np.floor(mu) # remove the integer part of mu
     i_out += 1 # increment output index
 out = out[2:i_out] # remove the first two, and anything after i_out (that was never filled out)
-#samples = out # only include this line if you want to connect this code snippet with the Costas Loop later on
+samples = out # only include this line if you want to connect this code snippet with the Costas Loop later on
 
-'''Time Plots'''
-plt.subplot(3,1,1) 
-plt.plot(pulse_train, '.-')
-plt.grid(True)
-plt.title('Original BPSK symbols')
-plt.subplot(3,1,2) 
-plt.plot(np.real(samples_nd), '.-')
-plt.grid(True)
-plt.title('Samples after pulse shaping but before the synchronizer')
-plt.subplot(3,1,3) 
-plt.plot(np.real(out), '.-', label='I')
-plt.plot(np.imag(out), '.-', label='Q')
-plt.legend()
-plt.grid(True)
-plt.title('Output of the symbol synchronizer (1sps)')
-plt.show()
-
-'''Scatter Plots'''
-plt.subplot(1,2,1) 
-plt.plot(np.real(samples[30:]), np.imag(samples[30:]), '.')
-plt.xlim([-2,2])
-plt.ylim([-2,2])
-plt.grid(True)
-plt.title('Before Time Sync')
-plt.subplot(1,2,2) 
-plt.plot(np.real(out[30:-6]), np.imag(out[30:-6]), '.')
-plt.xlim([-2,2])
-plt.ylim([-2,2])
-plt.grid(True)
-plt.title('After Time Sync')
-plt.show()

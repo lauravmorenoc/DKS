@@ -14,10 +14,6 @@ for bit in bits:
     pulse[0] = bit*2-1 # set the first value to either a 1 or -1
     pulse_train = np.concatenate((pulse_train, pulse)) # add the 8 samples to the signal
 
-# Apply frequency offset of +13kHz
-f_shift = 13000
-np.exp(2j*np.pi*f_shift*t) ## MIRAR BIEN COMO MULTIPLICAR ESTO
-
 # Create our raised-cosine filter
 num_taps = 101
 beta = 0.35
@@ -43,6 +39,7 @@ plt.plot(samples_nd, '.-')
 plt.plot(samples, '.-')
 plt.grid(True)
 plt.xlim([0, 150])
+plt.title('Adding a time delay')
 plt.show()
 
 '''Adding a Frequency Offset'''
@@ -51,6 +48,8 @@ plt.subplot(2,1,1) # Before freq shift
 plt.plot(np.real(samples), '.-', label='I')
 plt.plot(np.imag(samples), '.-', label='Q')
 plt.grid(True)
+plt.legend()
+plt.title('Before adding frequency offset')
 plt.xlim([0, 150])
 
 # apply a freq offset
@@ -64,6 +63,53 @@ plt.subplot(2,1,2) # Before freq shift
 plt.plot(np.real(samples), '.-', label='I')
 plt.plot(np.imag(samples), '.-', label='Q')
 plt.grid(True)
+plt.legend()
 plt.xlim([0, 150])
+plt.title('After adding frequency offset')
 plt.show()
 
+
+'''Normal FFT: Before Squaring'''
+
+psd = np.fft.fftshift(np.abs(np.fft.fft(samples)))
+f = np.linspace(-fs/2.0, fs/2.0, len(psd))
+plt.plot(f, psd)
+plt.title('FFT before squaring (signal psd hides the offset)')
+plt.show()
+
+'''FFT After Squaring'''
+N=2
+samples_sqr = samples**N # we square it because it is a BPSK signal. It depends on the modulation order. For a QPSK it would be squaring two times (N=4)
+psd = np.fft.fftshift(np.abs(np.fft.fft(samples_sqr)))
+f = np.linspace(-fs/2.0, fs/2.0, len(psd))
+plt.plot(f, psd)
+plt.title('FFT after squaring (freq. offset peak visible)')
+plt.show()
+
+max_freq =f[np.argmax(psd)] 
+print('Frequency offset: ', max_freq/N, ' Hz')
+
+'''Applying Coarse Freq. Offset Correction'''
+out = samples * np.exp(-1j*2*np.pi*max_freq*t/N)
+#out = samples * np.exp(-1j*2*np.pi*fo*t)
+samples_exp = out**N # We square again to see if we removed the peak
+psd = np.fft.fftshift(np.abs(np.fft.fft(samples_exp)))
+f = np.linspace(-fs/2.0, fs/2.0, len(psd))
+plt.plot(f, psd)
+plt.title('FFT after squaring and removing freq. offset (coarse)')
+plt.show()
+
+'''Scatter Plots'''
+plt.subplot(1,2,1) 
+plt.plot(np.real(samples[30:]), np.imag(samples[30:]), '.')
+plt.xlim([-2,2])
+plt.ylim([-2,2])
+plt.grid(True)
+plt.title('Before Coarse Freq Sync')
+plt.subplot(1,2,2)
+plt.plot(np.real(out[30:-6]), np.imag(out[30:-6]), '.')
+plt.xlim([-2,2])
+plt.ylim([-2,2])
+plt.grid(True)
+plt.title('After Coarse Freq Sync')
+plt.show()
