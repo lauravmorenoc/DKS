@@ -123,3 +123,59 @@ while i_out < len(samples) and i_in+16 < len(samples):
 out = out[2:i_out] # remove the first two, and anything after i_out (that was never filled out)
 samples = out # only include this line if you want to connect this code snippet with the Costas Loop later on
 
+'''Fine Frequency Synchronization: Costas Loop technique, designed specifically for BPSK but can be upgraded for QPSK'''
+
+N = len(samples)
+phase = 0
+freq = 0
+# These next two params is what to adjust, to make the feedback loop faster or slower (which impacts stability)
+alpha = 0.132
+beta = 0.00932
+out = np.zeros(N, dtype=np.complex64)
+freq_log = []
+for i in range(N):
+    out[i] = samples[i] * np.exp(-1j*phase) # adjust the input sample by the inverse of the estimated phase offset
+    error = np.real(out[i]) * np.imag(out[i]) # This is the error formula for 2nd order Costas Loop (e.g. for BPSK)
+
+    # Advance the loop (recalc phase and freq offset)
+    freq += (beta * error)
+    freq_log.append(freq * fs / (2*np.pi*sps)) # convert from angular velocity to Hz for logging, adding sps divider because of time offset correction
+    phase += freq + (alpha * error)
+
+    # Optional: Adjust phase so its always between 0 and 2pi, recall that phase wraps around every 2pi
+    while phase >= 2*np.pi:
+        phase -= 2*np.pi
+    while phase < 0:
+        phase += 2*np.pi
+
+# Plot freq over time to see how long it takes to hit the right offset
+plt.plot(freq_log,'.-')
+plt.show()
+
+'''Time Plots'''
+plt.subplot(2,1,1) 
+plt.plot(np.real(samples), '.-', label='I')
+plt.plot(np.imag(samples), '.-', label='Q')
+plt.grid(True)
+plt.title('Before Costas Loop')
+plt.subplot(2,1,2) 
+plt.plot(np.real(out), '.-', label='I')
+plt.plot(np.imag(out), '.-', label='Q')
+plt.grid(True)
+plt.title('After Costas Loop')
+plt.show()
+
+'''Scatter Plots'''
+plt.subplot(1,2,1) 
+plt.plot(np.real(samples_no_corrected[30:]), np.imag(samples_no_corrected[30:]), '.')
+plt.xlim([-2,2])
+plt.ylim([-2,2])
+plt.grid(True)
+plt.title('Before Sync')
+plt.subplot(1,2,2) 
+plt.plot(np.real(out[30:-6]), np.imag(out[30:-6]), '.')
+plt.xlim([-2,2])
+plt.ylim([-2,2])
+plt.grid(True)
+plt.title('After Coarse Freq + Time + Fine Freq Sync')
+plt.show()
