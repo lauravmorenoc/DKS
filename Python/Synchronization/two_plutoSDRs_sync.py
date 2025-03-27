@@ -60,6 +60,34 @@ def time_sync(samples,sps):
     out = out[2:i_out] # remove the first two, and anything after i_out (that was never filled out)
     return out
 
+def fine_freq_corr(samples, sps):
+    N = len(samples)
+    phase = 0
+    freq = 0
+    # These next two params is what to adjust, to make the feedback loop faster or slower (which impacts stability)
+    alpha = 0.09 # 0.132
+    beta = 0.0095 # 0.00932 originally 
+    out = np.zeros(N, dtype=np.complex64)
+    freq_log = []
+    for i in range(N):
+        out[i] = samples[i] * np.exp(-1j*phase) # adjust the input sample by the inverse of the estimated phase offset
+        error = np.real(out[i]) * np.imag(out[i]) # This is the error formula for 2nd order Costas Loop (e.g. for BPSK)
+
+        # Advance the loop (recalc phase and freq offset)
+        freq += (beta * error)
+        freq_log.append(freq * fs / (2*np.pi*sps)) # convert from angular velocity to Hz for logging, adding sps divider because of time offset correction
+        phase += freq + (alpha * error)
+
+        # Optional: Adjust phase so its always between 0 and 2pi, recall that phase wraps around every 2pi
+        while phase >= 2*np.pi:
+            phase -= 2*np.pi
+        while phase < 0:
+            phase += 2*np.pi
+
+    # Plot freq over time to see how long it takes to hit the right offset
+    plt.plot(freq_log,'.-')
+    plt.show()
+    return out
 
 '''Conf. Variables'''
 sample_rate = 1e6 # Hz
@@ -71,8 +99,8 @@ tx_gain=-30 # Increase to increase tx power, valid range is -90 to 0 dB
 N=2 # Order of the modulation
 
 '''Conf. SDRs'''
-sdr_tx = adi.ad9361(uri='usb:1.7.5')
-sdr_rx = adi.ad9361(uri='usb:1.8.5')
+sdr_tx = adi.ad9361(uri='usb:1.4.5')
+sdr_rx = adi.ad9361(uri='usb:1.5.5')
 conf_sdr_tx(sdr_tx,sample_rate,center_freq,gain_mode,tx_gain)
 [fs, ts]=conf_sdr_rx(sdr_rx, sample_rate, sample_rate, center_freq, gain_mode, rx_gain,num_samps)
 
@@ -96,36 +124,42 @@ for i in range (0, 10):
     raw_data = sdr_rx.rx()
 
 # Receive samples
-rx_samples = sdr_rx.rx()
-print(rx_samples)
+rx_2c = sdr_rx.rx()
+rx_samples=rx_2c[0]/plutoSDR_multiplier
 
 # Stop transmitting
 sdr_tx.tx_destroy_buffer()
 
 plt.figure(1)
-plt.plot(rx_samples, '.-')
+plt.plot(np.real(rx_samples[47500:52500]), '.-', label='Real')
+plt.plot(np.imag(rx_samples[47500:52500]), '.-', label='Imaginary')
 plt.grid(True)
-plt.xlim([0, 150])
+plt.legend()
 plt.title('Received samples')
 plt.show()
 
 '''Coarse Frequency Synchronization'''
 samples=coarse_freq_corr(N, rx_samples, fs)
 
+'''Time Sync'''
+samples=time_sync(samples,sps)
+
+'''Fine Frequency Synchornization'''
+samples=fine_freq_corr(samples, sps)
+
 '''Scatter Plots'''
+rx_samples=rx_samples/max(abs(rx_samples))
+samples=samples/max(abs(samples))
 plt.subplot(1,2,1) 
-plt.plot(np.real(rx_samples[30:]), np.imag(rx_samples[30:]), '.')
+plt.plot(np.real(rx_samples), np.imag(rx_samples), '.')
 plt.xlim([-2,2])
 plt.ylim([-2,2])
 plt.grid(True)
 plt.title('Before Coarse Freq Sync')
 plt.subplot(1,2,2)
-plt.plot(np.real(samples[30:-6]), np.imag(samples[30:-6]), '.')
+plt.plot(np.real(samples), np.imag(samples), '.')
 plt.xlim([-2,2])
 plt.ylim([-2,2])
 plt.grid(True)
-plt.title('After Coarse Freq Sync')
+plt.title('After Coarse Freq + Time + Fine Freq Sync')
 plt.show()
-
-'''Time Sync'''
-#samples=time_sync(samples,sps)
