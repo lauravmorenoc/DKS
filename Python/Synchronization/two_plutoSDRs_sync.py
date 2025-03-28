@@ -36,13 +36,14 @@ def coarse_freq_corr(N, samples, fs):
     f = np.linspace(-fs/2.0, fs/2.0, len(psd))
     max_freq = f[np.argmax(psd)] 
     print('Frequency offset: ', max_freq/N, ' Hz. Applying correction.')
-    out = samples * np.exp(-1j*2*np.pi*max_freq*t/N)
+    off_corr=np.exp(-1j*2*np.pi*max_freq*t/N)
+    out = samples * off_corr[-1:]
     return out
 
 def time_sync(samples,sps):
     samples_interpolated = signal.resample_poly(samples, 16, 1)
     mu = 0 # initial estimate of phase of sample
-    k=0.3 # changes how fast the feedback loop reacts; a higher value will make it react faster, but with higher risk of stability issues
+    k=0.3 # changes how fast the feedback loop reacts; a higher value will make it react faster, but with higher risk of stability issues 0.3,0.5,2
     out = np.zeros(len(samples) + 10, dtype=np.complex64)
     out_rail = np.zeros(len(samples) + 10, dtype=np.complex64) # stores values, each iteration we need the previous 2 values plus current value
     i_in = 0 # input samples index
@@ -65,8 +66,8 @@ def fine_freq_corr(samples, sps):
     phase = 0
     freq = 0
     # These next two params is what to adjust, to make the feedback loop faster or slower (which impacts stability)
-    alpha = 0.09 # 0.132
-    beta = 0.0095 # 0.00932 originally 
+    alpha = 0.11 # 0.132, modified to 0.09 for 916 MHz, 0.11 for 5.3 GHz
+    beta = 0.0092 # 0.00932, modified to 0.0095 for 916 MHz, 0.0092 for 5.3 GHz
     out = np.zeros(N, dtype=np.complex64)
     freq_log = []
     for i in range(N):
@@ -86,33 +87,38 @@ def fine_freq_corr(samples, sps):
 
     # Plot freq over time to see how long it takes to hit the right offset
     plt.plot(freq_log,'.-')
+    plt.title('Freq log')
     plt.show()
     return out
 
 '''Conf. Variables'''
 sample_rate = 1e6 # Hz
-center_freq = 915e6 # Hz
-num_samps = 100000 # number of samples per call to rx()
+center_freq = 2.4e9 # Hz
+#center_freq = 915e6 # Hz
+#num_samps = 100000 # number of samples per call to rx()
+num_samps = 50000
 gain_mode='manual'
 rx_gain=0
 tx_gain=-30 # Increase to increase tx power, valid range is -90 to 0 dB
 N=2 # Order of the modulation
 
 '''Conf. SDRs'''
-sdr_tx = adi.ad9361(uri='usb:1.4.5')
-sdr_rx = adi.ad9361(uri='usb:1.5.5')
+sdr_tx = adi.ad9361(uri='usb:1.7.5')
+sdr_rx = adi.ad9361(uri='usb:1.8.5')
 conf_sdr_tx(sdr_tx,sample_rate,center_freq,gain_mode,tx_gain)
 [fs, ts]=conf_sdr_rx(sdr_rx, sample_rate, sample_rate, center_freq, gain_mode, rx_gain,num_samps)
 
 ''' Create transmit waveform (BPSK, 16 samples per symbol) '''
 num_symbols = 1000
-sps=16
+sps=16 # samples per symbol
 plutoSDR_multiplier=2**14
 x_int = np.random.randint(0, 2, num_symbols) # 0 or 1
+#x_int = np.array([0]*num_symbols)
 x_degrees = x_int*360/2.0 # 0 or 180 degrees
 x_radians = x_degrees*np.pi/180.0 # sin() and cos() takes in radians
 x_symbols = np.cos(x_radians) # this produces our BPSK complex symbols
 samples = np.repeat(x_symbols, sps) # 16 samples per symbol (rectangular pulses)
+pulse_train=samples
 samples *= plutoSDR_multiplier # The PlutoSDR expects samples to be between -2^14 and +2^14, not -1 and +1 like some SDRs
 
 # Start the transmitter
@@ -126,6 +132,7 @@ for i in range (0, 10):
 # Receive samples
 rx_2c = sdr_rx.rx()
 rx_samples=rx_2c[0]/plutoSDR_multiplier
+#np.save("sdr_samples.npy", rx_samples)
 
 # Stop transmitting
 sdr_tx.tx_destroy_buffer()
@@ -143,23 +150,51 @@ samples=coarse_freq_corr(N, rx_samples, fs)
 
 '''Time Sync'''
 samples=time_sync(samples,sps)
+samples_ts=samples/max(abs(samples))
 
 '''Fine Frequency Synchornization'''
 samples=fine_freq_corr(samples, sps)
+samples_noang=samples/max(abs(samples))
+
+'''Phase correction'''
+angles=np.angle(samples)
+avg=np.mean(angles)
+samples=samples*np.exp(-1j*avg*np.pi/180)
+
+
+'''Time Plots
+fact=150
+plt.subplot(2,1,1) 
+plt.plot(pulse_train[:1000], '.-')
+plt.grid(True)
+plt.title('Original BPSK symbols')
+plt.subplot(2,1,2) 
+plt.plot(np.real(samples_ts[-fact:]), '.-', label='I')
+plt.plot(np.imag(samples_ts[-fact:]), '.-', label='Q')
+plt.legend()
+plt.grid(True)
+plt.title('Output of the symbol synchronizer (1sps)')
+plt.show()'''
 
 '''Scatter Plots'''
 rx_samples=rx_samples/max(abs(rx_samples))
 samples=samples/max(abs(samples))
 plt.subplot(1,2,1) 
+print(len(rx_samples)/2)
+#plt.plot(np.real(rx_samples[-int(len(rx_samples)/2):]), np.imag(rx_samples[-int(len(rx_samples)/2):]), '.')
 plt.plot(np.real(rx_samples), np.imag(rx_samples), '.')
+#plt.plot(np.real(samples_noang), np.imag(samples_noang), '.')
 plt.xlim([-2,2])
 plt.ylim([-2,2])
 plt.grid(True)
-plt.title('Before Coarse Freq Sync')
+plt.title('Before any sync')
 plt.subplot(1,2,2)
-plt.plot(np.real(samples), np.imag(samples), '.')
+#plt.plot(np.real(samples), np.imag(samples), '.')
+#plt.plot(np.real(samples_noang[-int(len(samples_noang)/2):]), np.imag(samples_noang[-int(len(samples_noang)/2):]), '.')
+plt.plot(np.real(samples_noang), np.imag(samples_noang), '.')
 plt.xlim([-2,2])
 plt.ylim([-2,2])
 plt.grid(True)
-plt.title('After Coarse Freq + Time + Fine Freq Sync')
+#plt.title('After Coarse Freq + Time + Fine Freq Sync')
+plt.title('After fine freq sync')
 plt.show()

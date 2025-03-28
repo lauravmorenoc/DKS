@@ -7,7 +7,8 @@ import math
 
 num_symbols = 100
 sps = 8
-bits = np.random.randint(0, 2, num_symbols) # Our data to be transmitted, 1's and 0's
+#bits = np.random.randint(0, 2, num_symbols) # Our data to be transmitted, 1's and 0's
+bits=[1]*num_symbols
 pulse_train = np.array([])
 for bit in bits:
     pulse = np.zeros(sps)
@@ -57,7 +58,7 @@ fs = 1e6 # assume our sample rate is 1 MHz
 fo = 1000 # simulate freq offset
 Ts = 1/fs # calc sample period
 t = np.arange(0, Ts*len(samples), Ts) # create time vector
-samples = samples * np.exp(1j*2*np.pi*fo*t) # perform freq shift
+samples = samples * np.exp(1j*(2*np.pi*fo*t + np.pi/10)) # perform freq shift
 samples_no_corrected=samples
 
 '''plt.subplot(2,1,2) # Before freq shift
@@ -165,17 +166,27 @@ plt.grid(True)
 plt.title('After Costas Loop')
 plt.show()
 
+'''Phase correction'''
+samp_no_ph_corr=out
+angles=np.angle(out[30:-6])
+avg=np.mean(angles)
+out=out[30:-6]*np.exp(-1j*avg*np.pi/180)
+#plt.plot(angles,'.-')
+#plt.show()
+
 '''Scatter Plots'''
 plt.subplot(1,2,1) 
-plt.plot(np.real(samples_no_corrected[30:]), np.imag(samples_no_corrected[30:]), '.')
+plt.plot(np.real(samp_no_ph_corr[30:-6]), np.imag(samp_no_ph_corr[30:-6]), '.')
 plt.xlim([-2,2])
 plt.ylim([-2,2])
 plt.grid(True)
-plt.title('Before Sync')
+plt.title('Before phase sync')
 plt.subplot(1,2,2) 
 plt.plot(np.real(out[30:-6]), np.imag(out[30:-6]), '.')
+#plt.plot(np.real(out), np.imag(out), '.')
 plt.xlim([-2,2])
 plt.ylim([-2,2])
 plt.grid(True)
-plt.title('After Coarse Freq + Time + Fine Freq Sync')
+plt.title('After Coarse Freq + Time + Fine Freq + Phase sync')
 plt.show()
+
