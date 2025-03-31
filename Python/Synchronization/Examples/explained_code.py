@@ -1,3 +1,5 @@
+'''This is a commented version of the code'''
+
 import numpy as np
 import adi
 import matplotlib.pyplot as plt
@@ -5,6 +7,7 @@ from scipy import signal
 
 '''Functions'''
 
+'''The following two funtions just configure the SDRs, they don't need to be modified'''
 def conf_sdr_rx(sdr, sample_rate, bandwidth, center_freq, mode, rx_gain,buffer_size):
     '''Configure properties for the Radio'''
     sdr.sample_rate = int(sample_rate)
@@ -27,6 +30,7 @@ def conf_sdr_tx(sdr, sample_rate,center_freq, mode, tx_gain):
     sdr.tx_buffer_size = int(2**18)
 
 
+'''This funtions was tested and works fine. It doesn't have any parameters that need to be modified'''
 def coarse_freq_corr(N, samples, fs):
     print('Finding coarse freq. offset')
     Ts=1/fs
@@ -34,12 +38,6 @@ def coarse_freq_corr(N, samples, fs):
     samples_sqr = samples**N 
     psd = np.fft.fftshift(np.abs(np.fft.fft(samples_sqr)))
     f = np.linspace(-fs/2.0, fs/2.0, len(psd))
-
-    # Plot
-    plt.plot(f, psd)
-    plt.title('FFT after squaring (freq. offset peak visible)')
-    plt.show()
-
     max_freq = f[np.argmax(psd)] 
     print('Frequency offset: ', max_freq/N, ' Hz. Applying correction.')
     #off_corr=np.exp(-1j*2*np.pi*max_freq*t/N)
@@ -47,10 +45,14 @@ def coarse_freq_corr(N, samples, fs):
     out = samples * np.exp(-1j*2*np.pi*max_freq*t/N)
     return out
 
+
+'''This function has one parameter that can be modified, which is 'k' (line 55). As the function goes through the samples, it picks a sample and 
+sees if that's the best sample to pick. If not, increases the step and checks again. The bigger k is, the bigger the step, which means that the
+function reacts faster. However, that brings stability issues.'''
 def time_sync(samples,sps):
     samples_interpolated = signal.resample_poly(samples, 16, 1)
     mu = 0 # initial estimate of phase of sample
-    k=2 # changes how fast the feedback loop reacts; a higher value will make it react faster, but with higher risk of stability issues 0.3,0.5,2
+    k=0.3 # changes how fast the feedback loop reacts; a higher value will make it react faster, but with higher risk of stability issues 0.3,0.5,2
     out = np.zeros(len(samples) + 10, dtype=np.complex64)
     out_rail = np.zeros(len(samples) + 10, dtype=np.complex64) # stores values, each iteration we need the previous 2 values plus current value
     i_in = 0 # input samples index
@@ -68,6 +70,9 @@ def time_sync(samples,sps):
     out = out[2:i_out] # remove the first two, and anything after i_out (that was never filled out)
     return out
 
+
+'''This function has two parameters to be modified: alpha and beta. However, its application is only for BPSK or QPSK signals, as it works by minimizing
+the Q part of the signal (deleted the offset that we want to see)'''
 def fine_freq_corr(samples, sps):
     N = len(samples)
     phase = 0
@@ -108,13 +113,13 @@ rx_gain=0
 tx_gain=-30 # Increase to increase tx power, valid range is -90 to 0 dB
 N=2 # Order of the modulation
 
-'''Conf. SDRs'''
+'''Conf. SDRs - Only modify the usb ports as necessary'''
 sdr_tx = adi.ad9361(uri='usb:1.4.5')
 sdr_rx = adi.ad9361(uri='usb:1.5.5')
 conf_sdr_tx(sdr_tx,sample_rate,center_freq,gain_mode,tx_gain)
 [fs, ts]=conf_sdr_rx(sdr_rx, sample_rate, sample_rate, center_freq, gain_mode, rx_gain,num_samps)
 
-''' Create transmit waveform (BPSK, 16 samples per symbol) '''
+''' Create transmit waveform (BPSK, 16 samples per symbol) - Comment line 126 and uncomment 127 for only 1's bit stream'''
 num_symbols = 1000
 sps=16 # samples per symbol
 plutoSDR_multiplier=2**14
@@ -125,11 +130,15 @@ x_radians = x_degrees*np.pi/180.0 # sin() and cos() takes in radians
 x_symbols = np.cos(x_radians) # this produces our BPSK complex symbols
 samples = np.repeat(x_symbols, sps) # 16 samples per symbol (rectangular pulses)
 pulse_train=samples
-samples *= plutoSDR_multiplier # The PlutoSDR expects samples to be between -2^14 and +2^14, not -1 and +1 like some SDRs
+plt.figure(1)
+plt.plot(pulse_train[-6000:], '.-')
+plt.title('Sent samples')
+plt.show()
+samples_tx = samples*plutoSDR_multiplier # The PlutoSDR expects samples to be between -2^14 and +2^14, not -1 and +1 like some SDRs
 
 # Start the transmitter
 sdr_tx.tx_cyclic_buffer = True # Enable cyclic buffers
-sdr_tx.tx([samples,samples]) # start transmitting
+sdr_tx.tx([samples_tx,samples_tx]) # start transmitting
 
 # Clear buffer just to be safe
 for i in range (0, 10):
@@ -138,12 +147,14 @@ for i in range (0, 10):
 # Receive samples
 rx_2c = sdr_rx.rx()
 rx_samples=rx_2c[0]/plutoSDR_multiplier
-#np.save("sdr_samples.npy", rx_samples)
+np.save("sdr_samples_100000.npy", rx_samples)
 
 # Stop transmitting
 sdr_tx.tx_destroy_buffer()
 
-plt.figure(1)
+'''This part printes a few received samples just to make sure we are detecting something. It may need to be corrected (or just commented) if the number
+of samples is made smaller'''
+plt.figure(2)
 plt.plot(np.real(rx_samples[47500:52500]), '.-', label='Real')
 plt.plot(np.imag(rx_samples[47500:52500]), '.-', label='Imaginary')
 plt.grid(True)
@@ -151,37 +162,35 @@ plt.legend()
 plt.title('Received samples')
 plt.show()
 
-'''Normal FFT: Before Squaring'''
-
-psd = np.fft.fftshift(np.abs(np.fft.fft(rx_samples)))
-f = np.linspace(-fs/2.0, fs/2.0, len(psd))
-plt.plot(f, psd)
-plt.title('FFT before squaring (signal psd hides the offset)')
-plt.show()
-
-'''Coarse Frequency Synchronization'''
+'''Coarse Frequency Synchronization - Calls the function'''
 samples=coarse_freq_corr(N, rx_samples, fs)
 
-samples_exp = samples**N # We square again to see if we removed the peak
-psd = np.fft.fftshift(np.abs(np.fft.fft(samples_exp)))
-f = np.linspace(-fs/2.0, fs/2.0, len(psd))
-plt.plot(f, psd)
-plt.title('FFT after squaring and removing freq. offset (coarse)')
-plt.show()
+'''Time Sync - Calls the function'''
+samples=time_sync(samples,sps)
+
+'''Phase sync'''
+''' I'm comenting this part as we didn't get to see if this works or not
+angles_avg=np.mean(np.angles(samples))
+samples-=angles_avg'''
 
 '''Scatter Plots'''
 rx_samples=rx_samples/max(abs(rx_samples))
 samples=samples/max(abs(samples))
 plt.subplot(1,2,1) 
-plt.plot(np.real(rx_samples[-50000:]), np.imag(samples[-50000:]), '.')
+plt.plot(np.real(rx_samples[-50000:]), np.imag(rx_samples[-50000:]), '.')
 plt.xlim([-2,2])
 plt.ylim([-2,2])
 plt.grid(True)
-plt.title('Before Coarse Freq Sync')
-plt.subplot(1,2,2)
-plt.plot(np.real(samples[-50000:]), np.imag(samples[-50000:]), '.')
+plt.title('Before Sync')
+plt.subplot(1,2,2) 
+plt.plot(np.real(samples[-3125:]), np.imag(samples[-3125:]), '.')
 plt.xlim([-2,2])
 plt.ylim([-2,2])
 plt.grid(True)
-plt.title('After Coarse Freq Sync')
+plt.title('After Sync')
 plt.show()
+
+'''Some Notes:
+For testing each sync, I used additional FFT and time plots. These plots are in the examples or the oder codes of this folder. 
+The fine freq. function is there to be used but for our purpose might be useless.
+'''
