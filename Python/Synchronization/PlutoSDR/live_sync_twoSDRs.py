@@ -96,21 +96,21 @@ def fine_freq_corr(samples, sps):
 sample_rate = 3e6 # Hz
 center_freq = 5.3e9 # Hz
 #center_freq = 915e6 # Hz
-num_samps = 160 # number of samples per call to rx()
+num_samps = 100000 # number of samples per call to rx()
 gain_mode='manual'
 rx_gain=0
 tx_gain=-30 # Increase to increase tx power, valid range is -90 to 0 dB
 N=2 # Order of the modulation
 
 '''Conf. SDRs'''
-sdr_tx = adi.ad9361(uri='usb:1.9.5')
-sdr_rx = adi.ad9361(uri='usb:1.10.5')
+sdr_tx = adi.ad9361(uri='usb:1.4.5')
+sdr_rx = adi.ad9361(uri='usb:1.6.5')
 conf_sdr_tx(sdr_tx,sample_rate,center_freq,gain_mode,tx_gain)
 [fs, ts]=conf_sdr_rx(sdr_rx, sample_rate, sample_rate, center_freq, gain_mode, rx_gain,num_samps)
 
 ''' Create transmit waveform (BPSK, 16 samples per symbol) '''
 num_symbols = 20
-sps=8 # samples per symbol
+sps=16 # samples per symbol
 plutoSDR_multiplier=2**14
 x_int = np.random.randint(0, 2, num_symbols) # 0 or 1
 #x_int = np.array([0]*num_symbols)
@@ -140,6 +140,7 @@ num_readings=100
 for i in range(num_readings):
     rx_2c = sdr_rx.rx()
     rx_samples=rx_2c[0]/plutoSDR_multiplier
+    np.save("sdr_samples_100000_v2.npy", rx_samples)
 
     '''Coarse Frequency Synchronization'''
     samples=coarse_freq_corr(N, rx_samples, fs)
