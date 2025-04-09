@@ -74,8 +74,8 @@ def fine_freq_corr(samples, sps, f_residual):
     #freq = 0
     freq = 2 * np.pi * f_residual / fs
     # These next two params is what to adjust, to make the feedback loop faster or slower (which impacts stability)
-    alpha = 10 # 0.132, modified to 0.09 for 916 MHz, cable: 1     '0.45' - 0.9
-    beta = alpha*0.007 # 0.00932, modified to 0.0095 for 916 MHz, cable: 0.03, '0.09' - 0.03
+    alpha = 10 # 0.132, modified to 0.09 for 916 MHz, cable: 1, wireless: 10
+    beta = alpha*0.007 # 0.00932, modified to 0.0095 for 916 MHz, cable: 0.03, wireless:0.007
     out = np.zeros(N, dtype=np.complex64)
     freq_log = []
     error_log = []

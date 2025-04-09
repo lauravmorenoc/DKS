@@ -19,7 +19,7 @@ mseq=[0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0];
 
 ris=ris_init('COM6', 115200);   % initialize RIS
 
-writeline(ris, low);
+writeline(ris, high);
 % Get response
 response = readline(ris);
 fprintf("Response from setting a pattern: %s\n", response);
