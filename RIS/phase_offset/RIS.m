@@ -15,7 +15,7 @@ duration=50; % seconds
 sleep_time=0;
 
 
-mseq=[0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0];
+mseq=[1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0];
 
 ris=ris_init('COM6', 115200);   % initialize RIS
 
@@ -24,7 +24,7 @@ writeline(ris, high);
 response = readline(ris);
 fprintf("Response from setting a pattern: %s\n", response);
 
-% ris_sequence(ris, high, low, mseq, period, duration, sleep_time)
+ ris_sequence(ris, high, low, mseq, period, duration, sleep_time)
 
 
 

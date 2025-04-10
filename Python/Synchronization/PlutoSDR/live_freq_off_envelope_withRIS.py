@@ -12,6 +12,7 @@ def conf_sdr_rx(sdr, sample_rate, bandwidth, center_freq, mode, rx_gain,buffer_s
     sdr.rx_lo = int(center_freq)
     sdr.gain_control_mode = mode
     sdr.rx_hardwaregain_chan0 = int(rx_gain)
+    #sdr.gain_control_mode_chan0 = "slow_attack"
     sdr.rx_buffer_size = int(buffer_size)
     sdr._rxadc.set_kernel_buffers_count(1)  # Set buffers to 1 to avoid stale data on Pluto
     fs=int(sdr.sample_rate)
@@ -27,17 +28,28 @@ def conf_sdr_tx(sdr, sample_rate,center_freq, mode, tx_gain):
     sdr.tx_buffer_size = int(2**18)
 
 
-def freq_offset(N, samples, fs):
-    print('Finding coarse freq. offset')
-    Ts=1/fs
-    t = np.arange(0, Ts*len(samples), Ts)
-    samples_sqr = samples**N
-    psd = np.fft.fftshift(np.abs(np.fft.fft(samples_sqr)))
-    f = np.linspace(-fs/2.0, fs/2.0, len(psd))
-    max_freq = f[np.argmax(psd)]
-    print('Frequency offset: ', max_freq/N, ' Hz. Applying correction.')
-    f_offset=max_freq/N
-    return f_offset
+def freq_offset_blocks(N, samples, fs, num_blocks):
+    total_len = len(samples)
+    block_size = total_len // num_blocks
+    f_offsets = []
+    for i in range(num_blocks):
+        # Tomar el bloque i-ésimo
+        start = i * block_size
+        end = start + block_size
+        block = samples[start:end]
+
+        # Calcular offset para este bloque
+        Ts = 1/fs
+        t = np.arange(0, Ts*len(block), Ts)
+        samples_sqr = block**N
+        psd = np.fft.fftshift(np.abs(np.fft.fft(samples_sqr)))
+        f = np.linspace(-fs/2.0, fs/2.0, len(psd))
+        max_freq = f[np.argmax(psd)]
+        f_offset = max_freq / N
+        f_offsets.append(f_offset)
+
+    f_offsets = np.array(f_offsets)
+    return f_offsets
 
 '''Conf. Variables'''
 sample_rate = 5.3e5 # Hz
@@ -49,10 +61,11 @@ rx_gain=0
 tx_gain=-30 # Increase to increase tx power, valid range is -90 to 0 dB
 #tx_gain=-50
 N=2 # Order of the modulation
+num_blocks=6 # blocks to divide the array and performe offset check
 
 '''Conf. SDRs'''
-sdr_tx = adi.ad9361(uri='usb:1.11.5')
-sdr_rx = adi.ad9361(uri='usb:1.10.5')
+sdr_tx = adi.ad9361(uri='usb:1.6.5')
+sdr_rx = adi.ad9361(uri='usb:1.7.5')
 conf_sdr_tx(sdr_tx,sample_rate,center_freq,gain_mode,tx_gain)
 [fs, ts]=conf_sdr_rx(sdr_rx, sample_rate, sample_rate, center_freq, gain_mode, rx_gain,num_samps)
 
@@ -78,6 +91,7 @@ sdr_tx.tx([samples_tx,samples_tx]) # start transmitting
 for i in range (0, 10):
     raw_data = sdr_rx.rx()
 
+np.save("nuevas_muestras.npy", raw_data[0]/plutoSDR_multiplier)
 
 num_readings=5000
 
@@ -85,7 +99,7 @@ num_readings=5000
 plt.ion()
 fig=plt.figure()
 bx=fig.add_subplot(111)
-line1, = bx.plot([],[],marker='*')
+line1, = bx.plot([],[],marker='*', label='Scan=0')
 bx.legend()
 bx.set_title("Frequency offset over time")
 bx.set_xlabel("Time Index")
@@ -98,13 +112,15 @@ for i in range(num_readings):
     np.save("sdr_samples_100000_v2.npy", rx_samples)
 
     '''Coarse Frequency Synchronization'''
-    f_offset=freq_offset(N, samples, fs)
-    f_offset_array=np.append(f_offset_array, f_offset/1000)
-    t=np.arange(0,len(f_offset_array),1)
-    line1.set_data(t,f_offset_array)
+    f_offsets=freq_offset_blocks(N, samples, fs, num_blocks)
+    #f_offset_array=np.append(f_offset_array, f_offsets)
+    #t=np.arange(0,len(f_offset_array),1)
+    t=np.arange(0,len(f_offsets),1)
+    line1.set_data(t,f_offsets/1000)
+    line1.set_label(f'Scan={i+1}')
     bx.relim()
     bx.autoscale_view()
-
+    bx.legend()
     plt.draw()
     plt.pause(0.01)
     
