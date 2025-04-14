@@ -52,20 +52,20 @@ def freq_offset_blocks(N, samples, fs, num_blocks):
     return f_offsets
 
 '''Conf. Variables'''
-sample_rate = 5.3e5 # Hz
+sample_rate = 3e6 # Hz
 center_freq = 5.3e9 # Hz
 #center_freq = 915e6 # Hz
-num_samps = 300000 # number of samples per call to rx()
+num_samps = 50000 # number of samples per call to rx()
 gain_mode='manual'
 rx_gain=0
 tx_gain=-30 # Increase to increase tx power, valid range is -90 to 0 dB
 #tx_gain=-50
 N=2 # Order of the modulation
-num_blocks=6 # blocks to divide the array and performe offset check
+num_blocks=1 # blocks to divide the array and performe offset check
 
 '''Conf. SDRs'''
 sdr_tx = adi.ad9361(uri='usb:1.6.5')
-sdr_rx = adi.ad9361(uri='usb:1.7.5')
+sdr_rx = adi.ad9361(uri='usb:1.5.5')
 conf_sdr_tx(sdr_tx,sample_rate,center_freq,gain_mode,tx_gain)
 [fs, ts]=conf_sdr_rx(sdr_rx, sample_rate, sample_rate, center_freq, gain_mode, rx_gain,num_samps)
 
@@ -76,6 +76,7 @@ plutoSDR_multiplier=2**14
 #x_int = np.random.randint(0, 2, num_symbols) # 0 or 1
 #x_int = np.array([0]*num_symbols)
 x_int = np.array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+#x_int = np.array([1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0])
 x_degrees = x_int*360/2.0 # 0 or 180 degrees
 x_radians = x_degrees*np.pi/180.0 # sin() and cos() takes in radians
 x_symbols = np.cos(x_radians) # this produces our BPSK complex symbols

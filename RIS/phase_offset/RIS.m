@@ -24,7 +24,7 @@ writeline(ris, high);
 response = readline(ris);
 fprintf("Response from setting a pattern: %s\n", response);
 
- ris_sequence(ris, high, low, mseq, period, duration, sleep_time)
+%ris_sequence(ris, high, low, mseq, period, duration, sleep_time)
 
 
 
