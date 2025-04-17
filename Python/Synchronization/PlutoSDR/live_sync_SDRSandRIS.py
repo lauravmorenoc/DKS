@@ -2,8 +2,6 @@ import numpy as np
 import adi
 import matplotlib.pyplot as plt
 from scipy import signal
-import time
-from collections import deque
 
 '''Functions'''
 
@@ -28,6 +26,7 @@ def conf_sdr_tx(sdr, sample_rate,center_freq, mode, tx_gain):
     sdr.tx_hardwaregain_chan0 = tx_gain # Increase to increase tx power, valid range is -90 to 0 dB
     sdr.tx_buffer_size = int(2**18)
 
+
 def coarse_freq_corr(N, samples, fs):
     print('Finding coarse freq. offset')
     Ts=1/fs
@@ -46,7 +45,6 @@ def coarse_freq_corr(N, samples, fs):
     f = np.linspace(-fs/2.0, fs/2.0, len(psd))
     max_freq = f[np.argmax(psd)]
     f_residual=max_freq/N
-    #print('Frequency residual: ',f_residual)
     return out, f_residual
 
 def time_sync(samples,sps):
@@ -70,6 +68,47 @@ def time_sync(samples,sps):
     out = out[2:i_out] # remove the first two, and anything after i_out (that was never filled out)
     return out
 
+def fine_freq_corr(samples, sps, f_residual):
+    N = len(samples)
+    phase = 0
+    #freq = 0
+    freq = 2 * np.pi * f_residual / fs
+    # These next two params is what to adjust, to make the feedback loop faster or slower (which impacts stability)
+    alpha = 10 # 0.132, modified to 0.09 for 916 MHz, cable: 1, wireless: 10
+    beta = alpha*0.007 # 0.00932, modified to 0.0095 for 916 MHz, cable: 0.03, wireless:0.007
+    out = np.zeros(N, dtype=np.complex64)
+    freq_log = []
+    error_log = []
+    for i in range(N):
+        out[i] = samples[i] * np.exp(-1j*phase) # adjust the input sample by the inverse of the estimated phase offset
+        error = np.real(out[i]) * np.imag(out[i]) # This is the error formula for 2nd order Costas Loop (e.g. for BPSK)
+        error_log.append(error)
+
+        # Advance the loop (recalc phase and freq offset)
+        freq += (beta * error)
+        freq_log.append(freq * fs / (2*np.pi*sps)) # convert from angular velocity to Hz for logging, adding sps divider because of time offset correction
+        phase += freq + (alpha * error)
+
+        # Optional: Adjust phase so its always between 0 and 2pi, recall that phase wraps around every 2pi
+        while phase >= 2*np.pi:
+            phase -= 2*np.pi
+        while phase < 0:
+            phase += 2*np.pi
+
+    return out, phase
+
+def sync(N, rx_samples, fs, sps):
+    '''Coarse Frequency Synchronization'''
+    rx_samples_corrected, f_residual=coarse_freq_corr(N, rx_samples, fs)
+
+    '''Time Sync'''
+    rx_samples_corrected=time_sync(rx_samples_corrected,sps)
+
+    '''Fine Frequency Synchronization'''
+    print('f_residual= ', f_residual)
+    rx_samples_corrected=fine_freq_corr(rx_samples_corrected, sps, f_residual)
+    
+
 '''Conf. Variables'''
 sample_rate = 3e6 # Hz
 center_freq = 5.3e9 # Hz
@@ -77,13 +116,13 @@ center_freq = 5.3e9 # Hz
 num_samps = 50000 # number of samples per call to rx()
 gain_mode='manual'
 rx_gain=0
-tx_gain=0 # Increase to increase tx power, valid range is -90 to 0 dB (it was -30 before)
+tx_gain=0 # Increase to increase tx power, valid range is -90 to 0 dB
 #tx_gain=-50
 N=2 # Order of the modulation
 
 '''Conf. SDRs'''
-sdr_tx = adi.ad9361(uri='usb:1.6.5')
-sdr_rx = adi.ad9361(uri='usb:1.5.5')
+sdr_tx = adi.ad9361(uri='usb:1.13.5')
+sdr_rx = adi.ad9361(uri='usb:1.14.5')
 conf_sdr_tx(sdr_tx,sample_rate,center_freq,gain_mode,tx_gain)
 [fs, ts]=conf_sdr_rx(sdr_rx, sample_rate, sample_rate, center_freq, gain_mode, rx_gain,num_samps)
 
@@ -93,13 +132,12 @@ sps=16 # samples per symbol
 plutoSDR_multiplier=2**14
 #x_int = np.random.randint(0, 2, num_symbols) # 0 or 1
 #x_int = np.array([0]*num_symbols)
-#x_int = np.array([1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0])
-x_int = np.array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+x_int = np.array([1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0])
 x_degrees = x_int*360/2.0 # 0 or 180 degrees
 x_radians = x_degrees*np.pi/180.0 # sin() and cos() takes in radians
 x_symbols = np.cos(x_radians) # this produces our BPSK complex symbols
 samples = np.repeat(x_symbols, sps) # 16 samples per symbol (rectangular pulses)
-pulse_train=samples
+#pulse_train=samples[::16]
 samples_tx = samples*plutoSDR_multiplier # The PlutoSDR expects samples to be between -2^14 and +2^14, not -1 and +1 like some SDRs
 
 # Start the transmitter
@@ -110,45 +148,66 @@ sdr_tx.tx([samples_tx,samples_tx]) # start transmitting
 for i in range (0, 10):
     raw_data = sdr_rx.rx()
 
+
 '''Plots'''
 plt.ion()
-fig, ax = plt.subplots()
-phase_log = deque(maxlen=100)  # guarda las últimas 100 mediciones
-line_phase, = ax.plot([], [], 'r-', label='Mean phase (deg)')
-ax.set_title("Mean Phase (deg)")
-ax.set_ylim([-180, 180])
-ax.set_xlim([0, 100])
-ax.set_xlabel("Samples")
-ax.set_ylabel("Phase (degrees)")
-ax.grid(True)
-ax.legend()
+fig, axs = plt.subplots(1, 2, figsize=(10, 5))
+sc1 = axs[0].scatter([], [], s=3)
+sc2 = axs[1].scatter([], [], s=3)
 
-num_readings=1000
+axs[0].set_title("Before Sync")
+axs[1].set_title("After Sync")
 
+for ax in axs:
+    ax.set_xlim([-2, 2])
+    ax.set_ylim([-2, 2])
+    ax.grid(True)
+
+# New subplot for phase log
+fig_phase, ax_phase = plt.subplots(figsize=(10, 4))
+line_phase, = ax_phase.plot([], [], 'b-o', label='Phase Log')
+ax_phase.set_title("Phase Log")
+ax_phase.set_xlabel("Sample Index")
+ax_phase.set_ylabel("Phase (radians)")
+ax_phase.grid(True)
+ax_phase.legend()
+
+#num_sync_cycles=5
+num_readings=100
+
+phase_accumulated = []
 for i in range(num_readings):
     rx_2c = sdr_rx.rx()
     rx_samples=rx_2c[0]/plutoSDR_multiplier
-    #np.save("sdr_samples_50000_00.npy", rx_samples)
-    
 
     '''Coarse Frequency Synchronization'''
-    samples, f_residual=coarse_freq_corr(N, rx_samples, fs)
+    rx_samples_corrected, f_residual=coarse_freq_corr(N, rx_samples, fs)
 
     '''Time Sync'''
-    samples=time_sync(samples,sps)
+    rx_samples_corrected=time_sync(rx_samples_corrected,sps)
 
-    received_symbols = samples
-    mean_phase = np.angle(np.mean(received_symbols))  # fase promedio en radianes
+    '''Fine Frequency Synchronization'''
+    print('f_residual= ', f_residual)
+    rx_samples_corrected,phase=fine_freq_corr(rx_samples_corrected, sps, f_residual)
+    phase_accumulated.append(phase)
 
-    mean_phase_deg = np.degrees(mean_phase) # Convert to degrees
-    #print(f"Mean phase (deg): {mean_phase_deg:.2f}")
-    phase_log.append(mean_phase_deg)
-    line_phase.set_data(np.arange(len(phase_log)), list(phase_log))
-    ax.set_xlim([0, len(phase_log)])
+    '''Scatter Plots'''
+    rx_samples=rx_samples/max(abs(rx_samples))
+    rx_samples_corrected=rx_samples_corrected/max(abs(rx_samples_corrected))
+    x1 = np.column_stack((np.real(rx_samples[::16]), np.imag(rx_samples[::16])))
+    x2 = np.column_stack((np.real(rx_samples_corrected[-1562:]), np.imag(rx_samples_corrected[-1562:]))) # 4500
+    sc1.set_offsets(x1)
+    sc2.set_offsets(x2)
+
+    t_phase = np.arange(len(phase_accumulated))
+    line_phase.set_data(t_phase, phase_accumulated)
+    ax_phase.relim()
+    ax_phase.autoscale_view()
+
     plt.draw()
-    plt.pause(0.01)
+    plt.pause(0.25)
 
-    #time.sleep (0.05)
+    #plt.pause(0.01)
 
 # Stop transmitting
 sdr_tx.tx_destroy_buffer()

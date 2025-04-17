@@ -79,10 +79,12 @@ def fine_freq_corr(samples, sps, f_residual):
     out = np.zeros(N, dtype=np.complex64)
     freq_log = []
     error_log = []
+    phase_log=[]
     for i in range(N):
         out[i] = samples[i] * np.exp(-1j*phase) # adjust the input sample by the inverse of the estimated phase offset
         error = np.real(out[i]) * np.imag(out[i]) # This is the error formula for 2nd order Costas Loop (e.g. for BPSK)
         error_log.append(error)
+        phase_log.append(phase)
 
         # Advance the loop (recalc phase and freq offset)
         freq += (beta * error)
@@ -95,20 +97,7 @@ def fine_freq_corr(samples, sps, f_residual):
         while phase < 0:
             phase += 2*np.pi
 
-    # Plot freq over time to see how long it takes to hit the right offset
-    #plt.figure()
-    '''plt.subplot(2,1,1)
-    plt.plot(freq_log)
-    plt.title("Freq log")
-    plt.grid(True)
-
-    plt.subplot(2,1,2)
-    plt.plot(error_log)
-    plt.title("Phase Error")
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()'''
-    return out
+    return out,phase_log
 
 '''Conf. Variables'''
 sample_rate = 3e6 # Hz
@@ -117,13 +106,13 @@ center_freq = 5.3e9 # Hz
 num_samps = 50000 # number of samples per call to rx()
 gain_mode='manual'
 rx_gain=0
-tx_gain=-30 # Increase to increase tx power, valid range is -90 to 0 dB
+tx_gain=0 # Increase to increase tx power, valid range is -90 to 0 dB
 #tx_gain=-50
 N=2 # Order of the modulation
 
 '''Conf. SDRs'''
-sdr_tx = adi.ad9361(uri='usb:1.12.5')
-sdr_rx = adi.ad9361(uri='usb:1.13.5')
+sdr_tx = adi.ad9361(uri='usb:1.13.5')
+sdr_rx = adi.ad9361(uri='usb:1.14.5')
 conf_sdr_tx(sdr_tx,sample_rate,center_freq,gain_mode,tx_gain)
 [fs, ts]=conf_sdr_rx(sdr_rx, sample_rate, sample_rate, center_freq, gain_mode, rx_gain,num_samps)
 
@@ -138,7 +127,7 @@ x_degrees = x_int*360/2.0 # 0 or 180 degrees
 x_radians = x_degrees*np.pi/180.0 # sin() and cos() takes in radians
 x_symbols = np.cos(x_radians) # this produces our BPSK complex symbols
 samples = np.repeat(x_symbols, sps) # 16 samples per symbol (rectangular pulses)
-pulse_train=samples
+pulse_train=samples[::16]
 
 '''plt.figure(1)
 plt.plot(pulse_train[-6000:], '.-')
@@ -163,6 +152,17 @@ fig, axs = plt.subplots(1, 2, figsize=(10, 5))
 sc1 = axs[0].scatter([], [], s=3)
 sc2 = axs[1].scatter([], [], s=3)
 
+fig_pulses, ax_pulses = plt.subplots(figsize=(10, 4))
+#line_mag, = ax_pulses.plot([], [], 'b-', label='Original pulses')
+line_real, = ax_pulses.plot([], [], 'r', marker='o', label='Real part')
+line_imag, = ax_pulses.plot([], [], 'g', marker='o', label='Imag part')
+ax_pulses.set_title("Time sync plots")
+ax_pulses.set_xlabel("Sample index")
+ax_pulses.set_ylabel("Amplitude")
+ax_pulses.grid(True)
+ax_pulses.legend()
+
+
 axs[0].set_title("Before Sync")
 axs[1].set_title("After Sync")
 for ax in axs:
@@ -176,14 +176,14 @@ for i in range(num_readings):
     np.save("sdr_samples_100000_v2.npy", rx_samples)
 
     '''Coarse Frequency Synchronization'''
-    samples, f_residual=coarse_freq_corr(N, rx_samples, fs)
+    rx_samples_corrected, f_residual=coarse_freq_corr(N, rx_samples, fs)
 
     '''Time Sync'''
-    samples=time_sync(samples,sps)
+    rx_samples_corrected=time_sync(rx_samples_corrected,sps)
 
     '''Fine Frequency Synchronization'''
     print('f_residual= ', f_residual)
-    rx_samples_corrected=fine_freq_corr(samples, sps, f_residual)
+    rx_samples_corrected, phase_log=fine_freq_corr(rx_samples_corrected, sps, f_residual)
     #rx_samples_corrected=samples
 
     '''Scatter Plots'''
@@ -195,6 +195,13 @@ for i in range(num_readings):
     sc1.set_offsets(x1)
     sc2.set_offsets(x2)
 
+    '''Time Plots
+    t=np.arange(0,len(rx_samples_corrected[-100:]),1)
+    #line_mag.set_data(t, pulse_train[-1562:])
+    line_real.set_data(t, np.real(rx_samples_corrected[-100:]))
+    line_imag.set_data(t, np.imag(rx_samples_corrected[-100:]))
+    ax_pulses.relim()
+    ax_pulses.autoscale_view()'''
     plt.draw()
     plt.pause(0.25)
 
