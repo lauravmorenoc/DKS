@@ -111,8 +111,8 @@ tx_gain=0 # Increase to increase tx power, valid range is -90 to 0 dB
 N=2 # Order of the modulation
 
 '''Conf. SDRs'''
-sdr_tx = adi.ad9361(uri='usb:1.13.5')
-sdr_rx = adi.ad9361(uri='usb:1.14.5')
+sdr_tx = adi.ad9361(uri='usb:1.29.5')
+sdr_rx = adi.ad9361(uri='usb:1.28.5')
 conf_sdr_tx(sdr_tx,sample_rate,center_freq,gain_mode,tx_gain)
 [fs, ts]=conf_sdr_rx(sdr_rx, sample_rate, sample_rate, center_freq, gain_mode, rx_gain,num_samps)
 

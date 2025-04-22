@@ -45,6 +45,7 @@ def coarse_freq_corr(N, samples, fs):
     f = np.linspace(-fs/2.0, fs/2.0, len(psd))
     max_freq = f[np.argmax(psd)]
     f_residual=max_freq/N
+    print('Residual offset: ', f_residual)
     return out, f_residual
 
 def time_sync(samples,sps):
@@ -68,52 +69,41 @@ def time_sync(samples,sps):
     out = out[2:i_out] # remove the first two, and anything after i_out (that was never filled out)
     return out
 
-def fine_freq_corr(samples, sps, f_residual):
-    N = len(samples)
-    phase = 0
-    #freq = 0
-    freq = 2 * np.pi * f_residual / fs
-    # These next two params is what to adjust, to make the feedback loop faster or slower (which impacts stability)
-    alpha = 10 # 0.132, modified to 0.09 for 916 MHz, cable: 1, wireless: 10
-    beta = alpha*0.007 # 0.00932, modified to 0.0095 for 916 MHz, cable: 0.03, wireless:0.007
-    out = np.zeros(N, dtype=np.complex64)
-    freq_log = []
-    error_log = []
-    for i in range(N):
-        out[i] = samples[i] * np.exp(-1j*phase) # adjust the input sample by the inverse of the estimated phase offset
-        error = np.real(out[i]) * np.imag(out[i]) # This is the error formula for 2nd order Costas Loop (e.g. for BPSK)
-        error_log.append(error)
+class FineFreqTracker:
+    def __init__(self, fs, sps, alpha=10, beta_scale=0.007):
+        self.fs = fs
+        self.sps = sps
+        self.alpha = alpha
+        self.beta = alpha * beta_scale
+        self.phase = 0
+        self.freq = 0  # rad/muestra
+        self.freq_log = []
 
-        # Advance the loop (recalc phase and freq offset)
-        freq += (beta * error)
-        freq_log.append(freq * fs / (2*np.pi*sps)) # convert from angular velocity to Hz for logging, adding sps divider because of time offset correction
-        phase += freq + (alpha * error)
+    def correct(self, samples):
+        N = len(samples)
+        out = np.zeros(N, dtype=np.complex64)
 
-        # Optional: Adjust phase so its always between 0 and 2pi, recall that phase wraps around every 2pi
-        while phase >= 2*np.pi:
-            phase -= 2*np.pi
-        while phase < 0:
-            phase += 2*np.pi
+        for i in range(N):
+            out[i] = samples[i] * np.exp(-1j * self.phase)
+            error = np.real(out[i]) * np.imag(out[i])  # BPSK error formula
+            self.freq += self.beta * error
+            self.phase += self.freq + self.alpha * error
+            # Keep phase in [0, 2pi]
+            while self.phase >= 2*np.pi:
+                self.phase -= 2*np.pi
+            while self.phase < 0:
+                self.phase += 2*np.pi
 
-    return out, phase
+            self.freq_log.append(self.freq * self.fs / (2 * np.pi * self.sps))  # Hz
 
-def sync(N, rx_samples, fs, sps):
-    '''Coarse Frequency Synchronization'''
-    rx_samples_corrected, f_residual=coarse_freq_corr(N, rx_samples, fs)
-
-    '''Time Sync'''
-    rx_samples_corrected=time_sync(rx_samples_corrected,sps)
-
-    '''Fine Frequency Synchronization'''
-    print('f_residual= ', f_residual)
-    rx_samples_corrected=fine_freq_corr(rx_samples_corrected, sps, f_residual)
+        return out
     
 
 '''Conf. Variables'''
 sample_rate = 3e6 # Hz
 center_freq = 5.3e9 # Hz
 #center_freq = 915e6 # Hz
-num_samps = 50000 # number of samples per call to rx()
+num_samps = 50000 # number of samples per call to rx() 
 gain_mode='manual'
 rx_gain=0
 tx_gain=0 # Increase to increase tx power, valid range is -90 to 0 dB
@@ -121,18 +111,18 @@ tx_gain=0 # Increase to increase tx power, valid range is -90 to 0 dB
 N=2 # Order of the modulation
 
 '''Conf. SDRs'''
-sdr_tx = adi.ad9361(uri='usb:1.13.5')
-sdr_rx = adi.ad9361(uri='usb:1.14.5')
+sdr_tx = adi.ad9361(uri='usb:1.29.5')
+sdr_rx = adi.ad9361(uri='usb:1.28.5')
 conf_sdr_tx(sdr_tx,sample_rate,center_freq,gain_mode,tx_gain)
 [fs, ts]=conf_sdr_rx(sdr_rx, sample_rate, sample_rate, center_freq, gain_mode, rx_gain,num_samps)
 
 ''' Create transmit waveform (BPSK, 16 samples per symbol) '''
-num_symbols = 20
+num_symbols = 10 # 20
 sps=16 # samples per symbol
 plutoSDR_multiplier=2**14
 #x_int = np.random.randint(0, 2, num_symbols) # 0 or 1
-#x_int = np.array([0]*num_symbols)
-x_int = np.array([1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0])
+x_int = np.array([0]*num_symbols)
+#x_int = np.array([1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0])
 x_degrees = x_int*360/2.0 # 0 or 180 degrees
 x_radians = x_degrees*np.pi/180.0 # sin() and cos() takes in radians
 x_symbols = np.cos(x_radians) # this produces our BPSK complex symbols
@@ -163,19 +153,20 @@ for ax in axs:
     ax.set_ylim([-2, 2])
     ax.grid(True)
 
-# New subplot for phase log
-fig_phase, ax_phase = plt.subplots(figsize=(10, 4))
-line_phase, = ax_phase.plot([], [], 'b-o', label='Phase Log')
-ax_phase.set_title("Phase Log")
-ax_phase.set_xlabel("Sample Index")
-ax_phase.set_ylabel("Phase (radians)")
-ax_phase.grid(True)
-ax_phase.legend()
+'''Plot evolution of freq_offset'''
+fig_flog, ax_flog = plt.subplots(figsize=(10, 4))
+line_flog, = ax_flog.plot([], [], 'b-o')           # Línea azul con puntos
+mean_line, = ax_flog.plot([], [], 'r--')           # Línea roja discontinua
+
+ax_flog.set_title("Fine Freq Offset over Time")
+ax_flog.set_xlabel("Sample Index")
+ax_flog.set_ylabel("Freq Offset [Hz]")
+ax_flog.grid(True)
 
 #num_sync_cycles=5
-num_readings=100
+num_readings=100000
+freq_tracker = FineFreqTracker(fs=fs, sps=sps)
 
-phase_accumulated = []
 for i in range(num_readings):
     rx_2c = sdr_rx.rx()
     rx_samples=rx_2c[0]/plutoSDR_multiplier
@@ -186,23 +177,32 @@ for i in range(num_readings):
     '''Time Sync'''
     rx_samples_corrected=time_sync(rx_samples_corrected,sps)
 
-    '''Fine Frequency Synchronization'''
-    print('f_residual= ', f_residual)
-    rx_samples_corrected,phase=fine_freq_corr(rx_samples_corrected, sps, f_residual)
-    phase_accumulated.append(phase)
+    rx_samples_corrected = freq_tracker.correct(rx_samples_corrected)
 
     '''Scatter Plots'''
     rx_samples=rx_samples/max(abs(rx_samples))
     rx_samples_corrected=rx_samples_corrected/max(abs(rx_samples_corrected))
-    x1 = np.column_stack((np.real(rx_samples[::16]), np.imag(rx_samples[::16])))
-    x2 = np.column_stack((np.real(rx_samples_corrected[-1562:]), np.imag(rx_samples_corrected[-1562:]))) # 4500
+
+    x1 = np.column_stack((np.real(rx_samples[::sps]), np.imag(rx_samples[::sps])))
+    x2 = np.column_stack((np.real(rx_samples_corrected[-round(num_samps/(sps*2)):]), np.imag(rx_samples_corrected[-round(num_samps/(sps*2)):]))) # 4500
     sc1.set_offsets(x1)
     sc2.set_offsets(x2)
 
-    t_phase = np.arange(len(phase_accumulated))
-    line_phase.set_data(t_phase, phase_accumulated)
-    ax_phase.relim()
-    ax_phase.autoscale_view()
+    '''Freq offset plot'''
+    max_points = 100000
+    freq_data = freq_tracker.freq_log[-max_points:]
+    t_flog = np.arange(len(freq_data))
+    line_flog.set_data(t_flog, freq_data)
+    mean_freq = np.mean(freq_tracker.freq_log) # Mean
+    mean_line.set_data(t_flog, [mean_freq] * len(freq_data))
+    ax_flog.relim()
+    ax_flog.autoscale_view()
+
+    ax_flog.legend(
+        [line_flog, mean_line],
+        ['Freq Offset', f'Mean = {mean_freq:.2f} Hz'],
+        loc='upper right'
+    )
 
     plt.draw()
     plt.pause(0.25)
