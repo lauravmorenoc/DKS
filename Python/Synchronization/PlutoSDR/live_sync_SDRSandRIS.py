@@ -111,8 +111,8 @@ tx_gain=0 # Increase to increase tx power, valid range is -90 to 0 dB
 N=2 # Order of the modulation
 
 '''Conf. SDRs'''
-sdr_tx = adi.ad9361(uri='usb:1.29.5')
-sdr_rx = adi.ad9361(uri='usb:1.28.5')
+sdr_tx = adi.ad9361(uri='usb:1.6.5')
+sdr_rx = adi.ad9361(uri='usb:1.7.5')
 conf_sdr_tx(sdr_tx,sample_rate,center_freq,gain_mode,tx_gain)
 [fs, ts]=conf_sdr_rx(sdr_rx, sample_rate, sample_rate, center_freq, gain_mode, rx_gain,num_samps)
 
@@ -153,7 +153,11 @@ for ax in axs:
     ax.set_ylim([-2, 2])
     ax.grid(True)
 
-'''Plot evolution of freq_offset'''
+num_readings=100000
+max_points = 100000 # max points to plot
+freq_tracker = FineFreqTracker(fs=fs, sps=sps)
+
+# Plot evolution of freq_offset
 fig_flog, ax_flog = plt.subplots(figsize=(10, 4))
 line_flog, = ax_flog.plot([], [], 'b-o')           # Línea azul con puntos
 mean_line, = ax_flog.plot([], [], 'r--')           # Línea roja discontinua
@@ -163,51 +167,60 @@ ax_flog.set_xlabel("Sample Index")
 ax_flog.set_ylabel("Freq Offset [Hz]")
 ax_flog.grid(True)
 
-#num_sync_cycles=5
-num_readings=100000
-freq_tracker = FineFreqTracker(fs=fs, sps=sps)
+# Initialize logs
+freq_log = []
+mean_log = []
 
+# Run loop
 for i in range(num_readings):
     rx_2c = sdr_rx.rx()
-    rx_samples=rx_2c[0]/plutoSDR_multiplier
+    rx_samples = rx_2c[0] / plutoSDR_multiplier
 
-    '''Coarse Frequency Synchronization'''
-    rx_samples_corrected, f_residual=coarse_freq_corr(N, rx_samples, fs)
+    # Coarse Frequency Synchronization
+    rx_samples_corrected, f_residual = coarse_freq_corr(N, rx_samples, fs)
 
-    '''Time Sync'''
-    rx_samples_corrected=time_sync(rx_samples_corrected,sps)
+    # Time Sync
+    rx_samples_corrected = time_sync(rx_samples_corrected, sps)
 
+    # Fine Frequency Sync
     rx_samples_corrected = freq_tracker.correct(rx_samples_corrected)
 
-    '''Scatter Plots'''
-    rx_samples=rx_samples/max(abs(rx_samples))
-    rx_samples_corrected=rx_samples_corrected/max(abs(rx_samples_corrected))
+    # Normalize for scatter plot
+    rx_samples = rx_samples / max(abs(rx_samples))
+    rx_samples_corrected = rx_samples_corrected / max(abs(rx_samples_corrected))
 
     x1 = np.column_stack((np.real(rx_samples[::sps]), np.imag(rx_samples[::sps])))
-    x2 = np.column_stack((np.real(rx_samples_corrected[-round(num_samps/(sps*2)):]), np.imag(rx_samples_corrected[-round(num_samps/(sps*2)):]))) # 4500
+    x2 = np.column_stack((np.real(rx_samples_corrected[-round(num_samps/(sps*2)):]),
+                          np.imag(rx_samples_corrected[-round(num_samps/(sps*2)):])))
     sc1.set_offsets(x1)
     sc2.set_offsets(x2)
 
-    '''Freq offset plot'''
-    max_points = 100000
-    freq_data = freq_tracker.freq_log[-max_points:]
-    t_flog = np.arange(len(freq_data))
-    line_flog.set_data(t_flog, freq_data)
-    mean_freq = np.mean(freq_tracker.freq_log) # Mean
-    mean_line.set_data(t_flog, [mean_freq] * len(freq_data))
+    # Update freq_log manually (one value per iteration after first full one)
+    if i == 0:
+        freq_log = freq_tracker.freq_log.copy()
+    else:
+        freq_log.append(freq_tracker.freq_log[-1])
+
+    # Update mean_log to match length
+    current_mean = np.mean(freq_log)
+    mean_log = [current_mean] * len(freq_log)
+
+    # Update plot data
+    t_flog = np.arange(len(freq_log))
+    line_flog.set_data(t_flog, freq_log)
+    mean_line.set_data(t_flog, mean_log)
+
     ax_flog.relim()
     ax_flog.autoscale_view()
 
     ax_flog.legend(
         [line_flog, mean_line],
-        ['Freq Offset', f'Mean = {mean_freq:.2f} Hz'],
+        ['Freq Offset', f'Mean = {current_mean:.2f} Hz'],
         loc='upper right'
     )
 
     plt.draw()
     plt.pause(0.25)
-
-    #plt.pause(0.01)
 
 # Stop transmitting
 sdr_tx.tx_destroy_buffer()
