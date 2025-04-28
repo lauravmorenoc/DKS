@@ -2,8 +2,6 @@ import numpy as np
 import adi
 import matplotlib.pyplot as plt
 from scipy import signal
-import time
-from collections import deque
 
 '''Functions'''
 
@@ -28,6 +26,7 @@ def conf_sdr_tx(sdr, sample_rate,center_freq, mode, tx_gain):
     sdr.tx_hardwaregain_chan0 = tx_gain # Increase to increase tx power, valid range is -90 to 0 dB
     sdr.tx_buffer_size = int(2**18)
 
+
 def coarse_freq_corr(N, samples, fs):
     print('Finding coarse freq. offset')
     Ts=1/fs
@@ -46,7 +45,7 @@ def coarse_freq_corr(N, samples, fs):
     f = np.linspace(-fs/2.0, fs/2.0, len(psd))
     max_freq = f[np.argmax(psd)]
     f_residual=max_freq/N
-    #print('Frequency residual: ',f_residual)
+    print('Residual offset: ', f_residual)
     return out, f_residual
 
 def time_sync(samples,sps):
@@ -70,36 +69,64 @@ def time_sync(samples,sps):
     out = out[2:i_out] # remove the first two, and anything after i_out (that was never filled out)
     return out
 
+class FineFreqTracker:
+    def __init__(self, fs, sps, alpha=10, beta_scale=0.007):
+        self.fs = fs
+        self.sps = sps
+        self.alpha = alpha
+        self.beta = alpha * beta_scale
+        self.phase = 0
+        self.freq = 0  # rad/muestra
+        self.freq_log = []
+
+    def correct(self, samples):
+        N = len(samples)
+        out = np.zeros(N, dtype=np.complex64)
+
+        for i in range(N):
+            out[i] = samples[i] * np.exp(-1j * self.phase)
+            error = np.real(out[i]) * np.imag(out[i])  # BPSK error formula
+            self.freq += self.beta * error
+            self.phase += self.freq + self.alpha * error
+            # Keep phase in [0, 2pi]
+            while self.phase >= 2*np.pi:
+                self.phase -= 2*np.pi
+            while self.phase < 0:
+                self.phase += 2*np.pi
+
+            self.freq_log.append(self.freq * self.fs / (2 * np.pi * self.sps))  # Hz
+
+        return out
+    
 '''Conf. Variables'''
 sample_rate = 3e6 # Hz
 center_freq = 5.3e9 # Hz
 #center_freq = 915e6 # Hz
-num_samps = 50000 # number of samples per call to rx()
+num_samps = 50000 # number of samples per call to rx() 
 gain_mode='manual'
 rx_gain=0
-tx_gain=0 # Increase to increase tx power, valid range is -90 to 0 dB (it was -30 before)
+tx_gain=0 # Increase to increase tx power, valid range is -90 to 0 dB
 #tx_gain=-50
 N=2 # Order of the modulation
 
 '''Conf. SDRs'''
-sdr_tx = adi.ad9361(uri='usb:1.7.5')
-sdr_rx = adi.ad9361(uri='usb:1.8.5')
+sdr_tx = adi.ad9361(uri='usb:1.19.5')
+sdr_rx = adi.ad9361(uri='usb:1.20.5')
 conf_sdr_tx(sdr_tx,sample_rate,center_freq,gain_mode,tx_gain)
 [fs, ts]=conf_sdr_rx(sdr_rx, sample_rate, sample_rate, center_freq, gain_mode, rx_gain,num_samps)
 
 ''' Create transmit waveform (BPSK, 16 samples per symbol) '''
-num_symbols = 20
+num_symbols = 10 # 20
 sps=16 # samples per symbol
 plutoSDR_multiplier=2**14
 #x_int = np.random.randint(0, 2, num_symbols) # 0 or 1
-#x_int = np.array([0]*num_symbols)
+x_int = np.array([0]*num_symbols)
 #x_int = np.array([1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0])
-x_int = np.array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
 x_degrees = x_int*360/2.0 # 0 or 180 degrees
 x_radians = x_degrees*np.pi/180.0 # sin() and cos() takes in radians
 x_symbols = np.cos(x_radians) # this produces our BPSK complex symbols
 samples = np.repeat(x_symbols, sps) # 16 samples per symbol (rectangular pulses)
-pulse_train=samples
+#pulse_train=samples[::16]
 samples_tx = samples*plutoSDR_multiplier # The PlutoSDR expects samples to be between -2^14 and +2^14, not -1 and +1 like some SDRs
 
 # Start the transmitter
@@ -111,79 +138,98 @@ for i in range (0, 10):
     raw_data = sdr_rx.rx()
 
 
-# Parameters
-num_readings = 1000
-max_plot_length = 200
-downsample_len = 100
-
-# Buffers to store the signal over time (with rolling window)
-mag_log = deque(maxlen=max_plot_length)   # Magnitude
-real_log = deque(maxlen=max_plot_length)  # Real part
-imag_log = deque(maxlen=max_plot_length)  # Imaginary part
-phase_log = deque(maxlen=max_plot_length) # Phase (angle)
-
-# Set up interactive plotting
+'''Plots'''
 plt.ion()
-fig, axs = plt.subplots(1, 2, figsize=(12, 4))  # Two subplots: [Amplitude, Phase]
+fig, axs = plt.subplots(1, 2, figsize=(10, 5))
+sc1 = axs[0].scatter([], [], s=3)
+sc2 = axs[1].scatter([], [], s=3)
 
-# --- Left Plot: Magnitude, Real and Imaginary components ---
-line_mag, = axs[0].plot([], [], 'b-', label='Magnitude')
-line_real, = axs[0].plot([], [], 'r--', label='Real part')
-line_imag, = axs[0].plot([], [], 'g--', label='Imag part')
-axs[0].set_title("Signal Amplitude Components")
-axs[0].set_ylim([-0.1, 0.1])  # Adjust based on signal amplitude range
-axs[0].set_xlim([0, max_plot_length])
-axs[0].set_xlabel("Sample index")
-axs[0].set_ylabel("Amplitude")
-axs[0].grid(True)
-axs[0].legend()
+axs[0].set_title("Before Sync")
+axs[1].set_title("After Sync")
 
-# --- Right Plot: Phase ---
-line_phase, = axs[1].plot([], [], 'm-', label='Phase')
-axs[1].set_title("Phase (degrees)")
-axs[1].set_ylim([-180, 180])
-axs[1].set_xlim([0, max_plot_length])
-axs[1].set_xlabel("Sample index")
-axs[1].set_ylabel("Phase (°)")
-axs[1].grid(True)
+for ax in axs:
+    ax.set_xlim([-2, 2])
+    ax.set_ylim([-2, 2])
+    ax.grid(True)
 
-# --- Main loop ---
+num_readings=100000
+max_points = 100000 # max points to plot
+freq_tracker = FineFreqTracker(fs=fs, sps=sps)
+
+# Plot evolution of freq_offset
+fig_flog, ax_flog = plt.subplots(figsize=(10, 4))
+line_flog, = ax_flog.plot([], [], 'b-o')           # Línea azul con puntos
+mean_line, = ax_flog.plot([], [], 'r--')           # Línea roja discontinua
+
+ax_flog.set_title("Fine Freq Offset over Time")
+ax_flog.set_xlabel("Sample Index")
+ax_flog.set_ylabel("Freq Offset [Hz]")
+ax_flog.grid(True)
+
+# Initialize logs
+freq_log = []
+mean_log = []
+
+freq_log_accumulated = []
+#block_size = int(num_samps / sps)  # approx 3124 points
+block_size=num_samps
+max_blocks = 10
+
+# Run loop
 for i in range(num_readings):
-    rx_2c = sdr_rx.rx()                      # Receive complex samples from SDR
-    rx_samples = rx_2c[0] / plutoSDR_multiplier  # Normalize the samples
+    rx_2c = sdr_rx.rx()
+    rx_samples = rx_2c[0] / plutoSDR_multiplier
 
-    # Downsample to 100 samples
-    step = len(rx_samples) // downsample_len
-    rx_samples_ds = rx_samples[::step][:downsample_len]
+    # Coarse Frequency Synchronization
+    rx_samples_corrected, f_residual = coarse_freq_corr(N, rx_samples, fs)
 
-    # Extract magnitude, real, imaginary, and phase components
-    mag = np.abs(rx_samples_ds)
-    real = np.real(rx_samples_ds)
-    imag = np.imag(rx_samples_ds)
-    phase = np.degrees(np.angle(rx_samples_ds))  # Convert phase to degrees
+    # Time Sync
+    rx_samples_corrected = time_sync(rx_samples_corrected, sps)
 
-    # Append new data to rolling buffers
-    mag_log.extend(mag)
-    real_log.extend(real)
-    imag_log.extend(imag)
-    phase_log.extend(phase)
+    # Fine Frequency Sync
+    rx_samples_corrected = freq_tracker.correct(rx_samples_corrected)
 
-    # Create x-axis values based on current length
-    x_vals = np.arange(len(mag_log))
+    # Normalize for scatter plot
+    rx_samples = rx_samples / max(abs(rx_samples))
+    rx_samples_corrected = rx_samples_corrected / max(abs(rx_samples_corrected))
 
-    # Update each line plot
-    line_mag.set_data(x_vals, list(mag_log))
-    line_real.set_data(x_vals, list(real_log))
-    line_imag.set_data(x_vals, list(imag_log))
-    line_phase.set_data(x_vals, list(phase_log))
+    x1 = np.column_stack((np.real(rx_samples[::sps]), np.imag(rx_samples[::sps])))
+    x2 = np.column_stack((np.real(rx_samples_corrected[-round(num_samps/(sps*2)):]),
+                          np.imag(rx_samples_corrected[-round(num_samps/(sps*2)):])))
+    sc1.set_offsets(x1)
+    sc2.set_offsets(x2)
 
-    # Update x-axis limits dynamically
-    axs[0].set_xlim([0, len(mag_log)])
-    axs[1].set_xlim([0, len(phase_log)])
+   # Extract the latest calculated block
+    new_block = freq_tracker.freq_log[-block_size:]
 
-    # Refresh plots
+    # Append to accumulated freq_log
+    freq_log_accumulated.extend(new_block)
+
+    # If too much accumulated, remove oldest block
+    if len(freq_log_accumulated) > max_blocks * block_size:
+        freq_log_accumulated = freq_log_accumulated[-max_blocks * block_size:]
+
+    # Update mean_log accordingly
+    #current_mean = np.mean(freq_log_accumulated)
+    current_mean = np.mean(new_block)
+    mean_log = [current_mean] * len(freq_log_accumulated)
+
+    # Update plot data
+    t_flog = np.arange(len(freq_log_accumulated))
+    line_flog.set_data(t_flog, freq_log_accumulated)
+    mean_line.set_data(t_flog, mean_log)
+
+    ax_flog.relim()
+    ax_flog.autoscale_view()
+
+    ax_flog.legend(
+        [line_flog, mean_line],
+        [f'Freq Offset (Iter {i})', f'Mean = {current_mean:.2f} Hz'],
+        loc='upper right'
+    )
+
     plt.draw()
-    plt.pause(0.01)
+    plt.pause(0.25)
 
 # Stop transmitting
 sdr_tx.tx_destroy_buffer()

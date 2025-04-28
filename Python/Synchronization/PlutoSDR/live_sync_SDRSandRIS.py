@@ -111,8 +111,8 @@ tx_gain=0 # Increase to increase tx power, valid range is -90 to 0 dB
 N=2 # Order of the modulation
 
 '''Conf. SDRs'''
-sdr_tx = adi.ad9361(uri='usb:1.6.5')
-sdr_rx = adi.ad9361(uri='usb:1.7.5')
+sdr_tx = adi.ad9361(uri='usb:1.11.5')
+sdr_rx = adi.ad9361(uri='usb:1.12.5')
 conf_sdr_tx(sdr_tx,sample_rate,center_freq,gain_mode,tx_gain)
 [fs, ts]=conf_sdr_rx(sdr_rx, sample_rate, sample_rate, center_freq, gain_mode, rx_gain,num_samps)
 
@@ -202,7 +202,7 @@ for i in range(num_readings):
         freq_log.append(freq_tracker.freq_log[-1])
 
     # Update mean_log to match length
-    current_mean = np.mean(freq_log)
+    current_mean = np.mean(freq_log[1500:])
     mean_log = [current_mean] * len(freq_log)
 
     # Update plot data
@@ -215,7 +215,7 @@ for i in range(num_readings):
 
     ax_flog.legend(
         [line_flog, mean_line],
-        ['Freq Offset', f'Mean = {current_mean:.2f} Hz'],
+        [f'Freq Offset (Iter {i})', f'Mean = {current_mean:.2f} Hz'],
         loc='upper right'
     )
 
