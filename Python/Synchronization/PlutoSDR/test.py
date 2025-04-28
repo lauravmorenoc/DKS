@@ -39,14 +39,14 @@ def coarse_freq_corr(N, samples, fs):
     #off_corr=np.exp(-1j*2*np.pi*max_freq*t/N)
     #out = samples * off_corr[-1:]
     out = samples * np.exp(-1j*2*np.pi*max_freq*t/N)
-
+    f_offset=max_freq/N
     samples_sqr = out**N
     psd = np.fft.fftshift(np.abs(np.fft.fft(samples_sqr)))
     f = np.linspace(-fs/2.0, fs/2.0, len(psd))
     max_freq = f[np.argmax(psd)]
     f_residual=max_freq/N
     print('Residual offset: ', f_residual)
-    return out, f_residual
+    return out, f_offset
 
 def time_sync(samples,sps):
     samples_interpolated = signal.resample_poly(samples, 16, 1)
@@ -110,8 +110,8 @@ tx_gain=0 # Increase to increase tx power, valid range is -90 to 0 dB
 N=2 # Order of the modulation
 
 '''Conf. SDRs'''
-sdr_tx = adi.ad9361(uri='usb:1.19.5')
-sdr_rx = adi.ad9361(uri='usb:1.20.5')
+sdr_tx = adi.ad9361(uri='usb:1.7.5')
+sdr_rx = adi.ad9361(uri='usb:1.8.5')
 conf_sdr_tx(sdr_tx,sample_rate,center_freq,gain_mode,tx_gain)
 [fs, ts]=conf_sdr_rx(sdr_rx, sample_rate, sample_rate, center_freq, gain_mode, rx_gain,num_samps)
 
@@ -167,7 +167,7 @@ ax_flog.set_ylabel("Freq Offset [Hz]")
 ax_flog.grid(True)
 
 # Initialize logs
-freq_log = []
+#freq_log = []
 mean_log = []
 
 freq_log_accumulated = []
@@ -175,61 +175,116 @@ freq_log_accumulated = []
 block_size=num_samps
 max_blocks = 10
 
-# Run loop
+lock_sync = False
+locked = False
+
+frozen_f_coa_offset = 0
+frozen_fine_freq = 0
+
+# Initialize phase accumulator for fine freq correction
+fine_phase_accumulator = 0
+
 for i in range(num_readings):
     rx_2c = sdr_rx.rx()
     rx_samples = rx_2c[0] / plutoSDR_multiplier
 
-    # Coarse Frequency Synchronization
-    rx_samples_corrected, f_residual = coarse_freq_corr(N, rx_samples, fs)
+    # COARSE + TIME + FINE correction only during first 5 iterations
+    if not lock_sync:
+        # Coarse Frequency Synchronization
+        rx_samples_corrected, f_coa_offset = coarse_freq_corr(N, rx_samples, fs)
 
-    # Time Sync
-    rx_samples_corrected = time_sync(rx_samples_corrected, sps)
+        # Time Sync
+        rx_samples_corrected = time_sync(rx_samples_corrected, sps)
 
-    # Fine Frequency Sync
-    rx_samples_corrected = freq_tracker.correct(rx_samples_corrected)
+        # Fine Frequency Sync
+        rx_samples_corrected = freq_tracker.correct(rx_samples_corrected)
 
-    # Normalize for scatter plot
+        # Extract the latest calculated block
+        new_block = freq_tracker.freq_log[-block_size:]
+
+        # Append to accumulated freq_log
+        freq_log_accumulated.extend(new_block)
+
+        # If too much accumulated, remove oldest block
+        if len(freq_log_accumulated) > max_blocks * block_size:
+            freq_log_accumulated = freq_log_accumulated[-max_blocks * block_size:]
+
+        # Update mean_log accordingly
+        current_mean = np.mean(new_block)
+        mean_log = [current_mean] * len(freq_log_accumulated)
+
+        # Update plot data
+        t_flog = np.arange(len(freq_log_accumulated))
+        line_flog.set_data(t_flog, freq_log_accumulated)
+        mean_line.set_data(t_flog, mean_log)
+
+        ax_flog.relim()
+        ax_flog.autoscale_view()
+
+        ax_flog.legend(
+            [line_flog, mean_line],
+            [f'Freq Offset (Iter {i})', f'Mean = {current_mean:.2f} Hz'],
+            loc='upper right'
+        )
+
+        plt.draw()
+        plt.pause(0.25)
+
+        # If reached 5 iterations, lock the synchronization
+        if i == 4:
+            lock_sync = True
+            frozen_f_coa_offset = f_coa_offset  # coarse residual to freeze
+            frozen_fine_freq = current_mean # fine freq offset to freeze
+            print("\n\n--- LOCKED synchronization ---\n")
+    
+    else:
+        if not locked:
+            # Print info when first locking
+            print(f"Frozen coarse f_coa_offset = {frozen_f_coa_offset:.2f} Hz")
+            print(f"Frozen fine freq offset = {frozen_fine_freq:.2f} Hz")
+            locked = True
+
+        # Apply frozen coarse correction
+        Ts = 1/fs
+        t = np.arange(0, Ts * len(rx_samples), Ts)
+        rx_samples_corrected = rx_samples * np.exp(-1j * 2 * np.pi * frozen_f_coa_offset * t)
+
+        # Time Sync still needed
+        rx_samples_corrected = time_sync(rx_samples_corrected, sps)
+
+        # Apply frozen fine correction dynamically
+        N = len(rx_samples_corrected)
+        corrected = np.zeros(N, dtype=np.complex64)
+        for j in range(N):
+            corrected[j] = rx_samples_corrected[j] * np.exp(-1j * fine_phase_accumulator)
+            # Increment phase by frozen fine freq
+            fine_phase_accumulator += 2 * np.pi * frozen_fine_freq * Ts / sps
+
+            # Keep phase in [0, 2pi]
+            while fine_phase_accumulator >= 2*np.pi:
+                fine_phase_accumulator -= 2*np.pi
+            while fine_phase_accumulator < 0:
+                fine_phase_accumulator += 2*np.pi
+
+        rx_samples_corrected = corrected
+
+    # Scatter plot for both cases
     rx_samples = rx_samples / max(abs(rx_samples))
     rx_samples_corrected = rx_samples_corrected / max(abs(rx_samples_corrected))
 
     x1 = np.column_stack((np.real(rx_samples[::sps]), np.imag(rx_samples[::sps])))
     x2 = np.column_stack((np.real(rx_samples_corrected[-round(num_samps/(sps*2)):]),
                           np.imag(rx_samples_corrected[-round(num_samps/(sps*2)):])))
+
     sc1.set_offsets(x1)
     sc2.set_offsets(x2)
 
-   # Extract the latest calculated block
-    new_block = freq_tracker.freq_log[-block_size:]
+    if not lock_sync:
+        plt.draw()
+        plt.pause(0.01)
+    else:
+        plt.pause(0.01)  # Only pause but don't update the freq offset plot
 
-    # Append to accumulated freq_log
-    freq_log_accumulated.extend(new_block)
-
-    # If too much accumulated, remove oldest block
-    if len(freq_log_accumulated) > max_blocks * block_size:
-        freq_log_accumulated = freq_log_accumulated[-max_blocks * block_size:]
-
-    # Update mean_log accordingly
-    #current_mean = np.mean(freq_log_accumulated)
-    current_mean = np.mean(new_block)
-    mean_log = [current_mean] * len(freq_log_accumulated)
-
-    # Update plot data
-    t_flog = np.arange(len(freq_log_accumulated))
-    line_flog.set_data(t_flog, freq_log_accumulated)
-    mean_line.set_data(t_flog, mean_log)
-
-    ax_flog.relim()
-    ax_flog.autoscale_view()
-
-    ax_flog.legend(
-        [line_flog, mean_line],
-        [f'Freq Offset (Iter {i})', f'Mean = {current_mean:.2f} Hz'],
-        loc='upper right'
-    )
-
-    plt.draw()
-    plt.pause(0.25)
 
 # Stop transmitting
 sdr_tx.tx_destroy_buffer()
