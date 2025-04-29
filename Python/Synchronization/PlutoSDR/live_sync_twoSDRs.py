@@ -79,12 +79,10 @@ def fine_freq_corr(samples, sps, f_residual):
     out = np.zeros(N, dtype=np.complex64)
     freq_log = []
     error_log = []
-    phase_log=[]
     for i in range(N):
         out[i] = samples[i] * np.exp(-1j*phase) # adjust the input sample by the inverse of the estimated phase offset
         error = np.real(out[i]) * np.imag(out[i]) # This is the error formula for 2nd order Costas Loop (e.g. for BPSK)
         error_log.append(error)
-        phase_log.append(phase)
 
         # Advance the loop (recalc phase and freq offset)
         freq += (beta * error)
@@ -97,13 +95,25 @@ def fine_freq_corr(samples, sps, f_residual):
         while phase < 0:
             phase += 2*np.pi
 
-    return out,phase_log
+    return out, freq
+
+def sync(N, rx_samples, fs, sps):
+    '''Coarse Frequency Synchronization'''
+    rx_samples_corrected, f_residual=coarse_freq_corr(N, rx_samples, fs)
+
+    '''Time Sync'''
+    rx_samples_corrected=time_sync(rx_samples_corrected,sps)
+
+    '''Fine Frequency Synchronization'''
+    print('f_residual= ', f_residual)
+    rx_samples_corrected=fine_freq_corr(rx_samples_corrected, sps, f_residual)
+    
 
 '''Conf. Variables'''
 sample_rate = 3e6 # Hz
 center_freq = 5.3e9 # Hz
 #center_freq = 915e6 # Hz
-num_samps = 50000 # number of samples per call to rx()
+num_samps = 50000 # number of samples per call to rx() 
 gain_mode='manual'
 rx_gain=0
 tx_gain=0 # Increase to increase tx power, valid range is -90 to 0 dB
@@ -117,22 +127,17 @@ conf_sdr_tx(sdr_tx,sample_rate,center_freq,gain_mode,tx_gain)
 [fs, ts]=conf_sdr_rx(sdr_rx, sample_rate, sample_rate, center_freq, gain_mode, rx_gain,num_samps)
 
 ''' Create transmit waveform (BPSK, 16 samples per symbol) '''
-num_symbols = 20
+num_symbols = 10 # 20
 sps=16 # samples per symbol
 plutoSDR_multiplier=2**14
 #x_int = np.random.randint(0, 2, num_symbols) # 0 or 1
-#x_int = np.array([0]*num_symbols)
-x_int = np.array([1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0])
+x_int = np.array([0]*num_symbols)
+#x_int = np.array([1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0])
 x_degrees = x_int*360/2.0 # 0 or 180 degrees
 x_radians = x_degrees*np.pi/180.0 # sin() and cos() takes in radians
 x_symbols = np.cos(x_radians) # this produces our BPSK complex symbols
 samples = np.repeat(x_symbols, sps) # 16 samples per symbol (rectangular pulses)
-pulse_train=samples[::16]
-
-'''plt.figure(1)
-plt.plot(pulse_train[-6000:], '.-')
-plt.title('Sent samples')
-plt.show()'''
+#pulse_train=samples[::16]
 samples_tx = samples*plutoSDR_multiplier # The PlutoSDR expects samples to be between -2^14 and +2^14, not -1 and +1 like some SDRs
 
 # Start the transmitter
@@ -144,36 +149,47 @@ for i in range (0, 10):
     raw_data = sdr_rx.rx()
 
 
-num_readings=50
-
 '''Plots'''
 plt.ion()
 fig, axs = plt.subplots(1, 2, figsize=(10, 5))
 sc1 = axs[0].scatter([], [], s=3)
 sc2 = axs[1].scatter([], [], s=3)
 
-fig_pulses, ax_pulses = plt.subplots(figsize=(10, 4))
-#line_mag, = ax_pulses.plot([], [], 'b-', label='Original pulses')
-line_real, = ax_pulses.plot([], [], 'r', marker='o', label='Real part')
-line_imag, = ax_pulses.plot([], [], 'g', marker='o', label='Imag part')
-ax_pulses.set_title("Time sync plots")
-ax_pulses.set_xlabel("Sample index")
-ax_pulses.set_ylabel("Amplitude")
-ax_pulses.grid(True)
-ax_pulses.legend()
-
-
 axs[0].set_title("Before Sync")
 axs[1].set_title("After Sync")
+
 for ax in axs:
     ax.set_xlim([-2, 2])
     ax.set_ylim([-2, 2])
     ax.grid(True)
 
+# New subplot for phase log
+fig_phase, ax_phase = plt.subplots(figsize=(10, 4))
+line_phase, = ax_phase.plot([], [], 'b-o', label='Freq corr')
+ax_phase.set_title("Freq correction")
+ax_phase.set_xlabel("Sample Index")
+ax_phase.set_ylabel("Freq (Hz)")
+ax_phase.grid(True)
+ax_phase.legend()
+
+# Plot phases
+fig_phase_samples, ax_phase_samples = plt.subplots(figsize=(10, 4))
+line_phase_samples, = ax_phase_samples.plot([], [], 'g.-', label='Sample Phase (After Sync)')
+ax_phase_samples.set_title("Sample Phases After Fine Sync")
+ax_phase_samples.set_xlabel("Sample Index")
+ax_phase_samples.set_ylabel("Phase (degrees)")
+ax_phase_samples.grid(True)
+ax_phase_samples.legend()
+
+#num_sync_cycles=5
+num_readings=100000
+
+freq_accumulated = []
+phase_samples_accumulated = []
+
 for i in range(num_readings):
     rx_2c = sdr_rx.rx()
     rx_samples=rx_2c[0]/plutoSDR_multiplier
-    np.save("sdr_samples_100000_v2.npy", rx_samples)
 
     '''Coarse Frequency Synchronization'''
     rx_samples_corrected, f_residual=coarse_freq_corr(N, rx_samples, fs)
@@ -181,27 +197,39 @@ for i in range(num_readings):
     '''Time Sync'''
     rx_samples_corrected=time_sync(rx_samples_corrected,sps)
 
-    '''Fine Frequency Synchronization'''
+    '''Fine Frequency Synchronization
     print('f_residual= ', f_residual)
-    rx_samples_corrected, phase_log=fine_freq_corr(rx_samples_corrected, sps, f_residual)
-    #rx_samples_corrected=samples
+    rx_samples_corrected,freq=fine_freq_corr(rx_samples_corrected, sps, f_residual)
+    freq_accumulated.append(freq)
+
+    if np.mean(np.real(rx_samples_corrected)) < 0:
+        rx_samples_corrected *= -1'''
+
+
 
     '''Scatter Plots'''
     rx_samples=rx_samples/max(abs(rx_samples))
     rx_samples_corrected=rx_samples_corrected/max(abs(rx_samples_corrected))
-    x1 = np.column_stack((np.real(rx_samples[::16]), np.imag(rx_samples[::16])))
-    x2 = np.column_stack((np.real(rx_samples_corrected[-1562:]), np.imag(rx_samples_corrected[-1562:]))) # 4500
-    #print(len(rx_samples_corrected))
+
+    phases_current = np.angle(rx_samples_corrected, deg=True)
+    phase_samples_accumulated.extend(phases_current)
+
+    x1 = np.column_stack((np.real(rx_samples[::sps]), np.imag(rx_samples[::sps])))
+    x2 = np.column_stack((np.real(rx_samples_corrected[-round(num_samps/(sps*2)):]), np.imag(rx_samples_corrected[-round(num_samps/(sps*2)):]))) # 4500
     sc1.set_offsets(x1)
     sc2.set_offsets(x2)
 
-    '''Time Plots
-    t=np.arange(0,len(rx_samples_corrected[-100:]),1)
-    #line_mag.set_data(t, pulse_train[-1562:])
-    line_real.set_data(t, np.real(rx_samples_corrected[-100:]))
-    line_imag.set_data(t, np.imag(rx_samples_corrected[-100:]))
-    ax_pulses.relim()
-    ax_pulses.autoscale_view()'''
+    t_phase = np.arange(len(freq_accumulated))
+    line_phase.set_data(t_phase, freq_accumulated)
+    ax_phase.relim()
+    ax_phase.autoscale_view()
+
+    '''Phase plots'''
+    t_phase_samples = np.arange(len(phase_samples_accumulated))
+    line_phase_samples.set_data(t_phase_samples, phase_samples_accumulated)
+    ax_phase_samples.relim()
+    ax_phase_samples.autoscale_view()
+
     plt.draw()
     plt.pause(0.25)
 

@@ -98,7 +98,6 @@ class FineFreqTracker:
 
         return out
     
-
 '''Conf. Variables'''
 sample_rate = 3e6 # Hz
 center_freq = 5.3e9 # Hz
@@ -111,8 +110,8 @@ tx_gain=0 # Increase to increase tx power, valid range is -90 to 0 dB
 N=2 # Order of the modulation
 
 '''Conf. SDRs'''
-sdr_tx = adi.ad9361(uri='usb:1.11.5')
-sdr_rx = adi.ad9361(uri='usb:1.12.5')
+sdr_tx = adi.ad9361(uri='usb:1.19.5')
+sdr_rx = adi.ad9361(uri='usb:1.20.5')
 conf_sdr_tx(sdr_tx,sample_rate,center_freq,gain_mode,tx_gain)
 [fs, ts]=conf_sdr_rx(sdr_rx, sample_rate, sample_rate, center_freq, gain_mode, rx_gain,num_samps)
 
@@ -171,6 +170,11 @@ ax_flog.grid(True)
 freq_log = []
 mean_log = []
 
+freq_log_accumulated = []
+#block_size = int(num_samps / sps)  # approx 3124 points
+block_size=num_samps
+max_blocks = 10
+
 # Run loop
 for i in range(num_readings):
     rx_2c = sdr_rx.rx()
@@ -195,19 +199,24 @@ for i in range(num_readings):
     sc1.set_offsets(x1)
     sc2.set_offsets(x2)
 
-    # Update freq_log manually (one value per iteration after first full one)
-    if i == 0:
-        freq_log = freq_tracker.freq_log.copy()
-    else:
-        freq_log.append(freq_tracker.freq_log[-1])
+   # Extract the latest calculated block
+    new_block = freq_tracker.freq_log[-block_size:]
 
-    # Update mean_log to match length
-    current_mean = np.mean(freq_log[1500:])
-    mean_log = [current_mean] * len(freq_log)
+    # Append to accumulated freq_log
+    freq_log_accumulated.extend(new_block)
+
+    # If too much accumulated, remove oldest block
+    if len(freq_log_accumulated) > max_blocks * block_size:
+        freq_log_accumulated = freq_log_accumulated[-max_blocks * block_size:]
+
+    # Update mean_log accordingly
+    #current_mean = np.mean(freq_log_accumulated)
+    current_mean = np.mean(new_block)
+    mean_log = [current_mean] * len(freq_log_accumulated)
 
     # Update plot data
-    t_flog = np.arange(len(freq_log))
-    line_flog.set_data(t_flog, freq_log)
+    t_flog = np.arange(len(freq_log_accumulated))
+    line_flog.set_data(t_flog, freq_log_accumulated)
     mean_line.set_data(t_flog, mean_log)
 
     ax_flog.relim()
