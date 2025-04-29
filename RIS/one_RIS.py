@@ -101,7 +101,7 @@ averaging_factor=5
 '''Create Radios'''
 
 '''sdr=adi.ad9361(uri='ip:192.168.2.1')'''
-sdr=adi.ad9361(uri='usb:1.14.5')
+sdr=adi.ad9361(uri='usb:1.14.5') # Rx
 [fs, ts]=conf_sdr(sdr, samp_rate, fc0, rx_lo, rx_mode, rx_gain,NumSamples)
 
 ''' Pre-designed sequences '''
@@ -137,9 +137,9 @@ s=0
 corr_array=[0]
 corr_final=[0]
 
-th,th_2=calculate_threshold(sdr,th_cycles,downsample_factor,mseq_upsampled,M_up, threshold_factor)
+th=calculate_threshold(sdr,th_cycles,downsample_factor,mseq_upsampled,M_up, threshold_factor)
 
-window_size = 30#int(num_reads * keep_percent)
+window_size = 30 # int(num_reads * keep_percent)
 corr_av=[]
 t=[]
 corr_final=[0]
@@ -160,27 +160,20 @@ if __name__ == "__main__":
         env_mean=np.mean(envelope)
         envelope-=env_mean
         envelope=envelope/np.max(envelope)
-        corr_array=np.append(corr_array,np.max(np.abs(correlate(mseq_upsampled, envelope, mode='full'))/M_up)) # saves all the peaks for seq 1 correlation
-        corr_array_second_seq=np.append(corr_array_second_seq,np.max(np.abs(correlate(mseq_upsampled2, envelope, mode='full'))/M_up)) # saves all the peaks for seq 2 correlation
+        corr_array=np.append(corr_array,np.max(np.abs(correlate(mseq_upsampled, envelope, mode='full'))/M_up)) # saves all the peaks for seq correlation
 
         corr_av=np.append(corr_av, np.mean(corr_array))
-        corr_av_2=np.append(corr_av_2, np.mean(corr_array_second_seq))
 
-        RIS_1_state= np.abs((corr_av[-1:]>th)*1)
-        RIS_2_state= np.abs((corr_av_2[-1:]>th_2)*1)
+        RIS_state= np.abs((corr_av[-1:]>th)*1)
 
-        visualizer.update_state((int(RIS_1_state),int(RIS_2_state)))
+        visualizer.update_state((int(RIS_state)))
             
         if i>window_size:
             t=t[-window_size:]
             corr_av=corr_av[-window_size:]
-            corr_av_2=corr_av_2[-window_size:]
-
 
         line1.set_data(t,corr_av)
-        line2.set_data(t,corr_av_2)
-        line3.set_data(t,[th]*len(corr_av))
-        line4.set_data(t,[th_2]*len(corr_av_2))
+        line2.set_data(t,[th]*len(corr_av))
 
         bx.relim()
         bx.autoscale_view()

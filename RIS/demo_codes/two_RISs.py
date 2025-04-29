@@ -181,7 +181,7 @@ corr_final_second_seq=[0]
 th_1,th_2=calculate_threshold(sdr,th_cycles,downsample_factor,mseq_upsampled1, mseq_upsampled2,M_up, threshold_factor_seq1, threshold_factor_seq2)
         
 
-window_size = 30#int(num_reads * keep_percent)
+window_size = 30 # int(num_reads * keep_percent)
 corr_av_1=[]
 corr_av_2=[]
 t=[]
