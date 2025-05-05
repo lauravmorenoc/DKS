@@ -8,11 +8,10 @@ clear all
 ris_idx='!0x8000000000000000000000000000000000';
 
 all_off='!0x0000000000000000000000000000000000000000000000000000000000000000';
-all_on='!0x8000000000000000000000000000000000000000000000000000000000000000';
-%all_on='!0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF';
+all_on='!0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF';
 high=all_off;
 low=all_on;
-period=0.5e-3/200; % seconds
+period=0.5; % seconds # 0.5e-3/200
 duration=50; % seconds
 sleep_time=0;
 
@@ -26,8 +25,8 @@ mseq3_1=[0,0,0,0,1,0,1,0,1,0,0,0,0,1,1,0];
 mseq3_2=[1,1,0,1,1,1,0,0,0,1,0,1,1,1,0,1];
 mseq3_3=[0,0,1,1,0,1,1,1,0,0,1,1,0,0,0,0];
 
-mseq=[0,0,0,0,1,0,1,0,1,0,0,0,0,1,1,0];
-ris=ris_init('COM6', 115200);   % initialize RIS
+mseq=[0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1];
+ris=ris_init('COM19', 115200);   % initialize RIS
 
 ris_sequence(ris, high, low, mseq, period, duration, sleep_time)
 
@@ -76,8 +75,8 @@ function ris_sequence(ris, high, low, sequence, period, duration, sleep_time)
                 writeline(ris, currentPattern);
                 % Get response
                 response = readline(ris);
-                %fprintf("Response from setting a pattern: %s\n", response);
-                %fprintf("Current pattern: %s\n", currentPattern);
+                fprintf("Response from setting a pattern: %s\n", response);
+                fprintf("Current pattern: %s\n", currentPattern);
                 %fprintf("Current symbol: %s\n", sequence(i));
                 pause(period);
                 time=time+period;
