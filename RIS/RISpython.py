@@ -43,8 +43,8 @@ def ris_sequence(ris, high, low, sequence, period, duration, sleep_time):
             
             ris.write((current_pattern + '\n').encode())
             response = ris.readline().decode().strip()
-            print(f"Response from setting a pattern: {response}")
-            print(f"Current pattern: {current_pattern}")
+            #print(f"Response from setting a pattern: {response}")
+            #print(f"Current pattern: {current_pattern}")
             
             time.sleep(period)
             elapsed += period
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     
     high = all_off
     low = all_on
-    period = 0.5  # Sekunden
+    period = 2.5e-6  # Sekunden
     duration = 50  # Sekunden
     sleep_time = 0
 
@@ -70,7 +70,14 @@ if __name__ == "__main__":
     mseq = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
 
     # RIS öffnen
-    ris = ris_init('COM19', 115200)
+    ris = ris_init('COM5', 115200)
+
+    '''
+    current_pattern=low
+    ris.write((current_pattern + '\n').encode())
+    response = ris.readline().decode().strip()
+    print(f"Response from setting a pattern: {response}")'''
 
     # Sequenz ausführen
     ris_sequence(ris, high, low, mseq, period, duration, sleep_time)
+
