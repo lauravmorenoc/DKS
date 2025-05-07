@@ -58,7 +58,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: int(2.4e9)
+    value: int(5.3e9)
   states:
     bus_sink: false
     bus_source: false
@@ -70,7 +70,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '"usb:1.7.5"'
+    value: '"usb:1.10.5"'
   states:
     bus_sink: false
     bus_source: false
@@ -162,7 +162,7 @@ blocks:
     rfdc: 'True'
     samplerate: samp_rate
     type: fc32
-    uri: usb:1.8.5
+    uri: USB
   states:
     bus_sink: false
     bus_source: false

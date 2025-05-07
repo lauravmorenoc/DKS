@@ -126,7 +126,7 @@ fc0 = int(200e3)
 
 ''' Control Variables '''
 threshold_factor_seq1=3
-threshold_factor_seq2=3
+threshold_factor_seq2=2
 num_av_corr=5
 downsample_factor=180
 th_cycles=10
@@ -136,12 +136,13 @@ averaging_factor=5
 '''Create Radios'''
 
 '''sdr=adi.ad9361(uri='ip:192.168.2.1')'''
-sdr=adi.ad9361(uri='usb:1.14.5')
+sdr=adi.ad9361(uri='usb:1.12.5')
 [fs, ts]=conf_sdr(sdr, samp_rate, fc0, rx_lo, rx_mode, rx_gain,NumSamples)
 
 ''' Pre-designed sequences '''
 mseq1=np.array([0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0])
 mseq2=np.array([0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1])
+#mseq2=np.array([1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1])
 M=len(mseq1)
 amp=1 # signal amplitude
 mseq1= np.where(mseq1 == 0, amp, -amp) # rearange sequence so 0=amp, 1=-amp

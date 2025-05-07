@@ -22,12 +22,14 @@ time_in_between=period/4;
 %mseq1=[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1];
 mseq1=[0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0];
 mseq2=[0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1];
+%mseq2 = [1 1 0 1 1 0 0 1 0 0 1 0 1 0 1 1];
+
 
 seq_0=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]; 
 seq_1=[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
 
 ris1=ris_init('COM6', 115200);   % initialize RIS 1
-ris2=ris_init('COM7', 115200);   % initialize RIS 2
+ris2=ris_init('COM22', 115200);   % initialize RIS 2
 
 ris_two_seqs(ris1, ris2, high, low, mseq1, mseq2, period, duration, sleep_time, time_in_between);   
 
