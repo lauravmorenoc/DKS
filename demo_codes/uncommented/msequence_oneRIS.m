@@ -14,8 +14,7 @@ period=0.5e-3/200; % seconds
 duration=50; % seconds
 sleep_time=0;
 
-%mseq=[0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1]; % RIS 2
-% mseq=[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1]; % RIS 1
+% Sequences for 2 RIS testing
 mseq1=[0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0];
 mseq2=[0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1];
 
@@ -24,7 +23,7 @@ mseq3_1=[0,0,0,0,1,0,1,0,1,0,0,0,0,1,1,0];
 mseq3_2=[1,1,0,1,1,1,0,0,0,1,0,1,1,1,0,1];
 mseq3_3=[0,0,1,1,0,1,1,1,0,0,1,1,0,0,0,0];
 
-mseq=mseq3_1;
+mseq=mseq1;
 ris=ris_init('COM6', 115200);   % initialize RIS
 
 ris_sequence(ris, high, low, mseq, period, duration, sleep_time)
