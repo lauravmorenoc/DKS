@@ -10,16 +10,16 @@ from matplotlib.patches import Patch
 # ===================== USER PARAMETERS =====================
 ris_port = 'COM22'
 baudrate = 115200
-reads_per_check = 20
+reads_per_check = 3
 group_size = 16
 change_period= 1 # seconds
 num_rows = 16
 num_cols = 16
 rx_lo = 5.3e9
-sample_rate = 2e6
-NumSamples = 50000
+sample_rate = 5.3e5
+NumSamples = 300000
 rx_gain = 0
-tx_gain = -50
+tx_gain = 0
 # ===========================================================
 
 
@@ -68,8 +68,8 @@ state = [0] * (num_rows * num_cols)  # initial state: all OFF
 send_pattern(ris, generate_pattern(state))
 
 # Configure SDR
-sdr_tx = adi.ad9361(uri='usb:1.7.5')
-sdr_rx = adi.ad9361(uri='usb:1.8.5')
+sdr_tx = adi.ad9361(uri='usb:1.4.5')
+sdr_rx = adi.ad9361(uri='usb:1.6.5')
 #sdr_tx=sdr_rx=adi.ad9361(uri='usb:1.5.5')
 sdr_tx.sample_rate = sdr_rx.sample_rate = int(sample_rate)
 sdr_tx.rx_rf_bandwidth = sdr_rx.rx_rf_bandwidth = int(3 * 0)
@@ -98,6 +98,9 @@ power_history = []
 # Initial power
 current_power = measure_power(sdr_rx, NumSamples, reads_per_check)
 power_history.append(current_power)
+
+
+# ============================= MAXIMIZING =============================
 
 for row in range(0, num_rows, group_side):
     for col in range(0, num_cols, group_side):
@@ -144,13 +147,22 @@ plt.grid()
 plt.show(block=False)
 
 # Saving in text file
-hex_pattern = generate_pattern(state)
-with open("optimized_max_ris_pattern_hex.txt", "w") as f:
-    f.write(hex_pattern)
+x = 1
+y = 1
 
+# Generate the pattern string
+hex_pattern = generate_pattern(state)
+
+# Format the full line to write
+line_to_write = f"{hex_pattern} [{x},{y}]\n"
+
+# Append to file instead of overwriting
+with open("optimized_max_ris_pattern_hex.txt", "a") as f:  # 'a' = append mode
+    f.write(line_to_write)
 
 
 # ============================= MINIMIZING =============================
+
 print('Minimizing now')
 power_history = []
 
@@ -158,6 +170,7 @@ power_history = []
 current_power = measure_power(sdr_rx, NumSamples, reads_per_check)
 power_history.append(current_power)
 
+# Get min power pattern
 for row in range(0, num_rows, group_side):
     for col in range(0, num_cols, group_side):
         print(f"\nChecking group at ({row}, {col})")
@@ -204,8 +217,8 @@ plt.show()
 
 # Saving in text file
 hex_pattern = generate_pattern(state)
-with open("optimized_min_ris_pattern_hex.txt", "w") as f:
-    f.write(hex_pattern)
+line_to_write = f"{hex_pattern} [{x},{y}]\n"
+with open("optimized_min_ris_pattern_hex.txt", "a") as f:  # 'a' = append mode
+    f.write(line_to_write)
 
-
-
+ris.close()

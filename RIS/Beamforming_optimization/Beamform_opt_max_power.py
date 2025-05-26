@@ -68,8 +68,8 @@ state = [0] * (num_rows * num_cols)  # initial state: all OFF
 send_pattern(ris, generate_pattern(state))
 
 # Configure SDR
-sdr_tx = adi.ad9361(uri='usb:1.7.5')
-sdr_rx = adi.ad9361(uri='usb:1.8.5')
+sdr_tx = adi.ad9361(uri='usb:1.6.5')
+sdr_rx = adi.ad9361(uri='usb:1.7.5')
 #sdr_tx=sdr_rx=adi.ad9361(uri='usb:1.5.5')
 sdr_tx.sample_rate = sdr_rx.sample_rate = int(sample_rate)
 sdr_tx.rx_rf_bandwidth = sdr_rx.rx_rf_bandwidth = int(3 * 0)
@@ -120,7 +120,8 @@ for row in range(0, num_rows, group_side):
 
         print(f"Old power: {current_power:.2f} dBFS, New power: {new_power:.2f} dBFS")
 
-        if new_power >= current_power:
+        if new_power >= current_power: # for maximizing power
+        #if new_power <= current_power: # for minimizing power
             print("→ Change accepted.")
             current_power = new_power
         else:
@@ -149,7 +150,7 @@ plt.show(block=False)
 final_matrix = np.array(state).reshape((16, 16))
 
 # Create a new figure just for the matrix
-fig3 = plt.figure(figsize=(6, 6))  # Use a unique figure name
+fig3 = plt.figure(figsize=(3, 3))  # Use a unique figure name
 ax3 = fig3.add_subplot(111)
 
 # Draw the matrix
@@ -172,36 +173,58 @@ plt.title("Optimized RIS Pattern")
 plt.tight_layout()
 plt.show(block=False)
 
-#============================ LIVE POWER MEASUREMENT ============================
+#============================ LIVE POWER MEASUREMENT WITH SPECTRUM ============================
 
 number_of_reads = 1000  # Total live readings
-window_size = 50       # Max number of readings in window
+window_size = 50        # Max number of readings in window
 power_history_live = []
 
 print(f"Starting live power tracking with max power = {current_power:.2f} dBFS")
 
-# Create new figure for live plot
-fig_live, ax_live = plt.subplots()
-fig_live.canvas.manager.set_window_title("Live Power Plot")
+# Create a figure with 2 subplots: power over time + frequency spectrum
+fig_live, (ax_time, ax_freq) = plt.subplots(1, 2, figsize=(12, 4))
+fig_live.canvas.manager.set_window_title("Live Power + Frequency Plot")
 
 for i in range(number_of_reads):
-    live_power = measure_power(sdr_rx, NumSamples, reads_per_check)
-    power_history_live.append(live_power)
+    data = sdr_rx.rx()
+    Rx_0 = data[0]
+
+    # Process time domain power
+    y = Rx_0 * np.hamming(NumSamples)
+    sp = np.abs(np.fft.fftshift(np.fft.fft(y)[1:-1]))
+    mag = np.abs(sp) / (np.sum(np.hamming(NumSamples)) / 2)
+    dbfs = 20 * np.log10(mag / (2**12))
+    peak_power = np.max(dbfs)
+    power_history_live.append(peak_power)
 
     if len(power_history_live) > window_size:
         power_history_live = power_history_live[-window_size:]
 
-    ax_live.clear()  # ONLY clear this figure's axes, not others
-    ax_live.plot(power_history_live, marker='o', color='orange', label="Live Power Readings")
-    ax_live.axhline(y=current_power, color='red', linestyle='--',
-                    label=f"Max Power: {current_power:.2f} dBFS")
+    # Clear plots
+    ax_time.clear()
+    ax_freq.clear()
 
-    delta = current_power - live_power
-    ax_live.set_title(f"Live Tracking — ΔPower: {delta:.2f} dB")
-    ax_live.set_xlabel("Read Index (last 50)")
-    ax_live.set_ylabel("Power (dBFS)")
-    ax_live.grid(True)
-    ax_live.legend(loc="lower left")
+    # Plot time domain power
+    ax_time.plot(power_history_live, marker='o', color='orange', label="Live Power Readings")
+    ax_time.axhline(y=current_power, color='red', linestyle='--',
+                    label=f"Max Power: {current_power:.2f} dBFS")
+    delta = current_power - peak_power
+    ax_time.set_title(f"Live Tracking — ΔPower: {delta:.2f} dB")
+    ax_time.set_xlabel("Read Index (last 50)")
+    ax_time.set_ylabel("Power (dBFS)")
+    ax_time.grid(True)
+    ax_time.legend(loc="lower left")
+
+    # Plot frequency domain
+    freqs = np.fft.fftshift(np.fft.fftfreq(NumSamples, d=1/sample_rate))[1:-1] / 1e6  # in MHz
+    ax_freq.plot(freqs, dbfs, color='blue')
+    ax_freq.set_title("Live Spectrum")
+    ax_freq.set_xlabel("Frequency [MHz]")
+    ax_freq.set_ylabel("Power (dBFS)")
+    ax_freq.set_ylim([-100, -20])
+    ax_freq.set_xlim([-sample_rate/(2e6), sample_rate/(2e6)])  # ±samp_rate/2 in MHz
+    ax_freq.grid(True)
+
     plt.pause(0.25)
 
 plt.ioff()
