@@ -130,6 +130,7 @@ bx.legend()
 bx.set_title("RIS Detection and Identification")
 bx.set_xlabel("Time Index")
 bx.set_ylabel("Correlation Amplitude")
+
 s=0
 
 ''' Finding threshold '''

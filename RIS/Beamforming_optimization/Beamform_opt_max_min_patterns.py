@@ -148,7 +148,7 @@ plt.show(block=False)
 
 # Saving in text file
 x = 1
-y = 1
+y = 6
 
 # Generate the pattern string
 hex_pattern = generate_pattern(state)

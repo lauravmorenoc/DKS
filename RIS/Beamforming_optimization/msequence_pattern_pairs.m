@@ -1,33 +1,52 @@
-%{
-This code generates an m-sequence for a RIS
-%}
+clear all;
 
-clear all
+%% Parameters
+file_max = 'optimized_max_ris_pattern_hex.txt';
+file_min = 'optimized_min_ris_pattern_hex.txt';
+num_patterns = 6;  % total number of patterns per file
 
-%% Variables
+% Read max patterns
+fid_max = fopen(file_max, 'r');
+max_patterns = cell(num_patterns, 1);
+for i = 1:num_patterns
+    line = strtrim(fgetl(fid_max));
+    parts = regexp(line, '(!0x[0-9a-fA-F]+)', 'tokens');
+    max_patterns{i} = parts{1}{1};
+end
+fclose(fid_max);
 
-all_off='!0x0000000000000000000000000000000000000000000000000000000000000000';
-all_on='!0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF';
-high=all_off;
-low=all_on;
-period=0.5e-3/200; % seconds
-duration=50; % seconds
-sleep_time=0;
+% Read min patterns
+fid_min = fopen(file_min, 'r');
+min_patterns = cell(num_patterns, 1);
+for i = 1:num_patterns
+    line = strtrim(fgetl(fid_min));
+    parts = regexp(line, '(!0x[0-9a-fA-F]+)', 'tokens');
+    min_patterns{i} = parts{1}{1};
+end
+fclose(fid_min);
 
-% Sequences for 2 RIS testing
-mseq1=[0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0];
-mseq2=[0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1];
+%% Select pair
+pos = 6;  % <-- Choose value from 1 to 6
+
+max_pow_pattern = max_patterns{pos};
+min_pow_pattern = min_patterns{pos};
+
+% Display selected patterns
+disp(['Selected Max pattern: ', max_pow_pattern]);
+disp(['Selected Min pattern: ', min_pow_pattern]);
 
 % Sequences for 3 RIS testing 
 mseq3_1=[0,0,0,0,1,0,1,0,1,0,0,0,0,1,1,0];
 mseq3_2=[1,1,0,1,1,1,0,0,0,1,0,1,1,1,0,1];
 mseq3_3=[0,0,1,1,0,1,1,1,0,0,1,1,0,0,0,0];
 
-mseq=mseq1;
+mseq=mseq3_1;
+period=0.5e-3/200; % seconds
+duration=50; % seconds
+sleep_time=0;
+
 ris=ris_init('COM22', 115200);   % initialize RIS
-
-ris_sequence(ris, high, low, mseq, period, duration, sleep_time)
-
+ris_sequence(ris, max_pow_pattern, min_pow_pattern, mseq, period, duration, sleep_time)
 
 
 
