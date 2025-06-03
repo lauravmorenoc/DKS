@@ -113,16 +113,16 @@ num_reads=10000
 averaging_factor=5
 
 '''Create Radios'''
-sdr_tx = adi.ad9361(uri='usb:1.4.5')
-sdr_rx = adi.ad9361(uri='usb:1.6.5')
+sdr_tx = adi.ad9361(uri='usb:1.50.5')
+sdr_rx = adi.ad9361(uri='usb:1.53.5')
 #sdr_tx=sdr_rx=adi.ad9361(uri='usb:1.5.5')
 sdr_tx.sample_rate = sdr_rx.sample_rate = int(samp_rate)
-sdr_tx.rx_rf_bandwidth = sdr_rx.rx_rf_bandwidth = int(3 * 0)
+sdr_tx.rx_rf_bandwidth = sdr_rx.rx_rf_bandwidth = int(3 * fc0)
 sdr_tx.rx_lo = sdr_rx.rx_lo = int(rx_lo)
 sdr_tx.gain_control_mode = sdr_rx.gain_control_mode = "manual"
 sdr_tx.rx_hardwaregain_chan0 = sdr_rx.rx_hardwaregain_chan0 = rx_gain
 sdr_tx.rx_buffer_size = sdr_rx.rx_buffer_size = NumSamples
-sdr_tx.tx_rf_bandwidth = int(3 * 0)
+sdr_tx.tx_rf_bandwidth = int(3 * fc0)
 sdr_tx.tx_lo = int(rx_lo)
 sdr_tx.tx_cyclic_buffer = True
 sdr_tx.tx_hardwaregain_chan0 = tx_gain

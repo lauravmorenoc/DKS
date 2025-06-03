@@ -6,7 +6,7 @@
 #
 # GNU Radio Python Flow Graph
 # Title: Not titled yet
-# GNU Radio version: 3.10.10.0
+# GNU Radio version: 3.10.12.0
 
 from PyQt5 import Qt
 from gnuradio import qtgui
@@ -23,6 +23,7 @@ from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
 from gnuradio import iio
 import sip
+import threading
 
 
 
@@ -49,7 +50,7 @@ class Example1(gr.top_block, Qt.QWidget):
         self.top_grid_layout = Qt.QGridLayout()
         self.top_layout.addLayout(self.top_grid_layout)
 
-        self.settings = Qt.QSettings("GNU Radio", "Example1")
+        self.settings = Qt.QSettings("gnuradio/flowgraphs", "Example1")
 
         try:
             geometry = self.settings.value("geometry")
@@ -57,22 +58,23 @@ class Example1(gr.top_block, Qt.QWidget):
                 self.restoreGeometry(geometry)
         except BaseException as exc:
             print(f"Qt GUI: Could not restore geometry: {str(exc)}", file=sys.stderr)
+        self.flowgraph_started = threading.Event()
 
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = 800000
-        self.Tx_att = Tx_att = 0
+        self.samp_rate = samp_rate = int(2.6e6)
+        self.USB = USB = "usb:1.37.5"
         self.LOFreq = LOFreq = int(5.3e9)
-        self.Amp = Amp = 0.001
+        self.Atten = Atten = 0
 
         ##################################################
         # Blocks
         ##################################################
 
-        self._Tx_att_range = qtgui.Range(0, 70, 10, 0, 200)
-        self._Tx_att_win = qtgui.RangeWidget(self._Tx_att_range, self.set_Tx_att, "'Tx_att'", "counter_slider", int, QtCore.Qt.Horizontal)
-        self.top_layout.addWidget(self._Tx_att_win)
+        self._Atten_range = qtgui.Range(0,  89.75, 10, 0, 200)
+        self._Atten_win = qtgui.RangeWidget(self._Atten_range, self.set_Atten, "'Atten'", "counter_slider", float, QtCore.Qt.Horizontal)
+        self.top_layout.addWidget(self._Atten_win)
         self.qtgui_sink_x_0 = qtgui.sink_c(
             2048, #fftsize
             window.WIN_BLACKMAN_hARRIS, #wintype
@@ -91,7 +93,7 @@ class Example1(gr.top_block, Qt.QWidget):
         self.qtgui_sink_x_0.enable_rf_freq(False)
 
         self.top_layout.addWidget(self._qtgui_sink_x_0_win)
-        self.iio_pluto_source_0 = iio.fmcomms2_source_fc32('usb:1.10.5' if 'usb:1.10.5' else iio.get_pluto_uri(), [True, True], 32768)
+        self.iio_pluto_source_0 = iio.fmcomms2_source_fc32(USB if USB else iio.get_pluto_uri(), [True, True], 32768)
         self.iio_pluto_source_0.set_len_tag_key('packet_len')
         self.iio_pluto_source_0.set_frequency(LOFreq)
         self.iio_pluto_source_0.set_samplerate(samp_rate)
@@ -101,17 +103,14 @@ class Example1(gr.top_block, Qt.QWidget):
         self.iio_pluto_source_0.set_rfdc(True)
         self.iio_pluto_source_0.set_bbdc(True)
         self.iio_pluto_source_0.set_filter_params('Auto', '', 0, 0)
-        self.iio_pluto_sink_0 = iio.fmcomms2_sink_fc32('usb:1.10.5' if 'usb:1.10.5' else iio.get_pluto_uri(), [True, True], 32768, True)
+        self.iio_pluto_sink_0 = iio.fmcomms2_sink_fc32(USB if USB else iio.get_pluto_uri(), [True, True], 32768, True)
         self.iio_pluto_sink_0.set_len_tag_key('')
         self.iio_pluto_sink_0.set_bandwidth(20000000)
         self.iio_pluto_sink_0.set_frequency(LOFreq)
         self.iio_pluto_sink_0.set_samplerate(samp_rate)
-        self.iio_pluto_sink_0.set_attenuation(0, Tx_att)
+        self.iio_pluto_sink_0.set_attenuation(0, Atten)
         self.iio_pluto_sink_0.set_filter_params('Auto', '', 0, 0)
-        self.analog_sig_source_x_0 = analog.sig_source_c(samp_rate, analog.GR_COS_WAVE, 200000, 1, 0, 0)
-        self._Amp_range = qtgui.Range(0.001, 1, 0.01, 0.001, 200)
-        self._Amp_win = qtgui.RangeWidget(self._Amp_range, self.set_Amp, "'Amp'", "counter_slider", float, QtCore.Qt.Horizontal)
-        self.top_layout.addWidget(self._Amp_win)
+        self.analog_sig_source_x_0 = analog.sig_source_c(samp_rate, analog.GR_COS_WAVE, 0, 1, 0, 0)
 
 
         ##################################################
@@ -122,7 +121,7 @@ class Example1(gr.top_block, Qt.QWidget):
 
 
     def closeEvent(self, event):
-        self.settings = Qt.QSettings("GNU Radio", "Example1")
+        self.settings = Qt.QSettings("gnuradio/flowgraphs", "Example1")
         self.settings.setValue("geometry", self.saveGeometry())
         self.stop()
         self.wait()
@@ -139,12 +138,11 @@ class Example1(gr.top_block, Qt.QWidget):
         self.iio_pluto_source_0.set_samplerate(self.samp_rate)
         self.qtgui_sink_x_0.set_frequency_range(self.LOFreq, self.samp_rate)
 
-    def get_Tx_att(self):
-        return self.Tx_att
+    def get_USB(self):
+        return self.USB
 
-    def set_Tx_att(self, Tx_att):
-        self.Tx_att = Tx_att
-        self.iio_pluto_sink_0.set_attenuation(0,self.Tx_att)
+    def set_USB(self, USB):
+        self.USB = USB
 
     def get_LOFreq(self):
         return self.LOFreq
@@ -155,11 +153,12 @@ class Example1(gr.top_block, Qt.QWidget):
         self.iio_pluto_source_0.set_frequency(self.LOFreq)
         self.qtgui_sink_x_0.set_frequency_range(self.LOFreq, self.samp_rate)
 
-    def get_Amp(self):
-        return self.Amp
+    def get_Atten(self):
+        return self.Atten
 
-    def set_Amp(self, Amp):
-        self.Amp = Amp
+    def set_Atten(self, Atten):
+        self.Atten = Atten
+        self.iio_pluto_sink_0.set_attenuation(0,self.Atten)
 
 
 
@@ -171,6 +170,7 @@ def main(top_block_cls=Example1, options=None):
     tb = top_block_cls()
 
     tb.start()
+    tb.flowgraph_started.set()
 
     tb.show()
 

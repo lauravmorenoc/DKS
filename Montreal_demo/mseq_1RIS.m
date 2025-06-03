@@ -1,6 +1,3 @@
-%{
-This code generates an m-sequence for a RIS
-%}
 
 clear all; clc
 global stopFlag;
@@ -34,7 +31,7 @@ mseq3_2=[1,1,0,1,1,1,0,0,0,1,0,1,1,1,0,1];
 mseq3_3=[0,0,1,1,0,1,1,1,0,0,1,1,0,0,0,0];
 
 mseq=mseq1;
-ris=ris_init('COM22', 115200);   % initialize RIS
+ris=ris_init('COM5', 115200);   % initialize RIS
 f = figure('Name', 'Press Q to stop', 'KeyPressFcn', @(src, event) stop_on_q(event)); % Interruption
 ris_sequence(ris, high, low, mseq, period, duration, sleep_time, RIS_index, ON, OFF)
 
