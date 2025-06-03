@@ -35,7 +35,7 @@ mseq3_3=[0,0,1,1,0,1,1,1,0,0,1,1,0,0,0,0];
 %mseq2=mseq3_2;
 ris=ris_init('COM5', 115200);   % initialize RIS
 f = figure('Name', 'Press Q to stop', 'KeyPressFcn', @(src, event) stop_on_q(event)); % Interruption
-ris_sequence(ris, high, low, mseq1, mseq2, period, duration, sleep_time, RIS_index, ON, OFF, time_per_seq)
+ris_sequence(ris, high, low, mseq1, mseq2, period, duration, sleep_time, ON, OFF, time_per_seq)
 
 
 
@@ -65,17 +65,17 @@ function ris = ris_init(port, baud)
 end
 
 
-function ris_sequence(ris, high, low, sequence1, sequence2, period, duration, sleep_time, RIS_index, ON, OFF, time_per_seq)
+function ris_sequence(ris, high, low, sequence1, sequence2, period, duration, sleep_time, ON, OFF, time_per_seq)
     global stopFlag;
     time = 0;
-    fid = fopen('output.txt', 'w');    % Inicializa como encendido
-    fprintf(fid, '%d%d\n', RIS_index, ON); 
-    fclose(fid);
 
     current_seq = sequence1;
     seq_selector = 1;  % 1 = sequence1, 2 = sequence2
     seq_counter = 0;
     disp('Current seq: RIS 1')
+    fid = fopen('output.txt', 'w');
+    fprintf(fid, '%d%d\n', ON, OFF); 
+    fclose(fid);
 
     while time < duration && ~stopFlag
         for i = 1:length(current_seq)
@@ -102,15 +102,21 @@ function ris_sequence(ris, high, low, sequence1, sequence2, period, duration, sl
 
         if seq_counter >= time_per_seq
             seq_counter = 0;
-            % Cambiar de secuencia
+            % Change sequence
             if seq_selector == 1
                 current_seq = sequence2;
                 seq_selector = 2;
                 disp('Current seq: RIS 2')
+                fid = fopen('output.txt', 'w');
+                fprintf(fid, '%d%d\n', OFF, ON); 
+                fclose(fid);
             else
                 current_seq = sequence1;
                 seq_selector = 1;
                 disp('Current seq: RIS 1')
+                fid = fopen('output.txt', 'w');
+                fprintf(fid, '%d%d\n', ON, OFF); 
+                fclose(fid);
             end
         end
         pause(sleep_time);
@@ -118,7 +124,7 @@ function ris_sequence(ris, high, low, sequence1, sequence2, period, duration, sl
 
     disp("Sequence completed or stopped by user.");
     fid = fopen('output.txt', 'w');    % Apagar RIS al terminar
-    fprintf(fid, '%d%d\n', RIS_index, OFF); 
+    fprintf(fid, '%d%d\n', OFF, OFF); 
     fclose(fid);
 end
 

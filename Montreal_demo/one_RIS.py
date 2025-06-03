@@ -88,7 +88,7 @@ def listen_for_input():
     global user_input_value
     while True:
         try:
-            value = input("Enter a value (e.g., 3): ")
+            value = input("Enter threshold factor: ")
             user_input_value = value.strip()
         except:
             pass
@@ -113,8 +113,8 @@ num_reads=10000
 averaging_factor=5
 
 '''Create Radios'''
-sdr_tx = adi.ad9361(uri='usb:1.50.5')
-sdr_rx = adi.ad9361(uri='usb:1.53.5')
+sdr_tx = adi.ad9361(uri='usb:1.57.5')
+sdr_rx = adi.ad9361(uri='usb:1.55.5')
 #sdr_tx=sdr_rx=adi.ad9361(uri='usb:1.5.5')
 sdr_tx.sample_rate = sdr_rx.sample_rate = int(samp_rate)
 sdr_tx.rx_rf_bandwidth = sdr_rx.rx_rf_bandwidth = int(3 * fc0)

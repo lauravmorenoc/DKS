@@ -1,48 +1,99 @@
 import adi            # Gives access to pluto commands
 import matplotlib.pyplot as plt
+from matplotlib.table import Table
 import numpy as np
 from scipy.signal import correlate
+import threading
+from collections import deque
 
+# These will be modified in real-time
+threshold_factors = {
+    "seq1": 3.0,
+    "seq2": 2.0
+}
 
 ''' Functions '''
 
 class BinaryStateVisualizer:
     def __init__(self):
-        self.states = [0, 0]  # Initial states
+        self.detected_states = [0, 0]
+        self.actual_states = [0, 0]
 
-        # Set up the figure
-        self.fig, self.ax = plt.subplots(figsize=(3, 3))
-        centers = [(-0.3,-0.5),(1.3,-0.5)]
-        labels = ["RIS 1", "RIS 2"]
+        self.fig, (self.ax_circles, self.ax_table) = plt.subplots(1, 2, figsize=(8, 4), gridspec_kw={'width_ratios': [2, 1]})
+
+        # Circle centers: (x, y)
+        centers = [(0, 1), (1, 1), (0, 0), (1, 0)]  # Row: Detected, Actual | Col: RIS 1, RIS 2
         self.circles = [plt.Circle(center, 0.3, fc='red', edgecolor='black') for center in centers]
 
         for circle in self.circles:
-            self.ax.add_patch(circle)
+            self.ax_circles.add_patch(circle)
 
-        for (x, y), label in zip(centers, labels):
-            self.ax.text(x, y + 0.6, label, ha='center', va='center', fontsize=12, fontweight='bold')
+        # Add column headers ("RIS 1", "RIS 2")
+        self.ax_circles.text(0, 1.7, "RIS 1", ha='center', va='center', fontsize=12, fontweight='bold')
+        self.ax_circles.text(1, 1.7, "RIS 2", ha='center', va='center', fontsize=12, fontweight='bold')
 
+        # Add row labels ("Detected", "Actual state")
+        self.ax_circles.text(-0.6, 1, "Detected", ha='right', va='center', fontsize=12, fontweight='bold')
+        self.ax_circles.text(-0.6, 0, "Actual state", ha='right', va='center', fontsize=12, fontweight='bold')
 
-        self.ax.set_xlim(-1, 2)
-        self.ax.set_ylim(-1.5, 1)
-        self.ax.set_aspect('equal')
-        self.ax.axis('off')
+        self.ax_circles.set_xlim(-1, 2)
+        self.ax_circles.set_ylim(-0.5, 2)
+        self.ax_circles.set_aspect('equal')
+        self.ax_circles.axis('off')
 
-        plt.ion()  # Turn on interactive mode
+        self.table = self.ax_table.table(
+            cellText=[["", "", "", ""]],
+            colLabels=["", "", "", ""],
+            loc='center',
+            colLoc='center',
+            cellLoc='center',
+            bbox=[0, 0.3, 1, 0.4]  # full table subplot
+        )
+        self.ax_table.axis('off')
+
+        self.fig.tight_layout()
+        plt.ion()
         plt.show()
+
+    def update_states(self, detected_states, actual_states, acc_values):
+        self.detected_states = detected_states
+        self.actual_states = actual_states
+
+        for i in range(2):
+            self.circles[i].set_facecolor('green' if self.detected_states[i] else 'red')     # top row
+            self.circles[i + 2].set_facecolor('green' if self.actual_states[i] else 'red')   # bottom row
+
+        # ⬇️ Unpack accuracy values
+        acc_last_1, acc_last_2, acc_last_overall, acc_hist_1, acc_hist_2, acc_hist_overall = acc_values
+
+        # ⬇️ Clear old table and recreate
+        self.table._cells.clear()
+
+        headers = ["", "RIS 1", "RIS 2", "Overall"]
+        rows = [
+            ["Recent", f"{acc_last_1}%", f"{acc_last_2}%", f"{acc_last_overall}%"],
+            ["Historical", f"{acc_hist_1}%", f"{acc_hist_2}%", f"{acc_hist_overall}%"]
+        ]
+
+        for col_idx, text in enumerate(headers):
+            self.table.add_cell(-1, col_idx, width=0.3, height=0.2, text=text, loc='center', facecolor='#cccccc')
         
+        # Bold header text
+        for col_idx in range(len(headers)):
+            self.table[-1, col_idx].get_text().set_fontweight('bold')
 
-    def update_states(self, new_states):
-        """Update the binary states (list of 4 elements: 0 or 1)."""
-        #if len(new_states) == 4:
-        if len(new_states) == 2:
-            self.states = new_states
-            for i, circle in enumerate(self.circles):
-                circle.set_facecolor('green' if self.states[i] else 'red')  # Change color
-            self.fig.canvas.draw()  # Ensure the figure updates
-            plt.pause(0.1)  # Small pause to allow GUI refresh
+        for row_idx, row in enumerate(rows):
+            for col_idx, text in enumerate(row):
+                self.table.add_cell(row_idx, col_idx, width=0.3, height=0.2, text=text, loc='center', facecolor='white')
 
-def calculate_threshold(sdr,th_cycles,downsample_factor,mseq_upsampled1, mseq_upsampled2,M_up, threshold_factor_seq1, threshold_factor_seq2):
+        self.table.auto_set_font_size(False)
+        self.table.set_fontsize(12)
+        self.table.scale(1.2, 1.5)
+
+        self.fig.canvas.draw()
+        plt.pause(0.1)
+
+def calculate_threshold(sdr,th_cycles,downsample_factor,mseq_upsampled1, mseq_upsampled2,M_up):
     corr_array_first_seq=[0]
     corr_array_second_seq=[0]
     corr_final_first_seq=[0]
@@ -62,7 +113,7 @@ def calculate_threshold(sdr,th_cycles,downsample_factor,mseq_upsampled1, mseq_up
             envelope=envelope/np.max(envelope)
             corr_array_first_seq=np.abs(correlate(mseq_upsampled1, envelope, mode='full'))/M_up # normalized
             corr_final_first_seq=np.append(corr_final_first_seq, np.max(corr_array_first_seq))
-        th_1=threshold_factor_seq1*np.mean(corr_final_first_seq[1:])
+        th_1=np.mean(corr_final_first_seq[1:])
         print('Threshold for RIS 1 found. TH1= ')
         print(th_1)
     elif ((user_input=='N')or(user_input=='n')):
@@ -86,7 +137,7 @@ def calculate_threshold(sdr,th_cycles,downsample_factor,mseq_upsampled1, mseq_up
             envelope=envelope/np.max(envelope)
             corr_array_second_seq=np.abs(correlate(mseq_upsampled2, envelope, mode='full'))/M_up # normalized
             corr_final_second_seq=np.append(corr_final_second_seq, np.max(corr_array_second_seq))
-        th_2=threshold_factor_seq2*np.mean(corr_final_second_seq[1:])
+        th_2=np.mean(corr_final_second_seq[1:])
         print('Threshold for RIS 2 found. TH2= ')
         print(th_2)
     elif ((user_input=='N')or(user_input=='n')):
@@ -101,6 +152,36 @@ def calculate_threshold(sdr,th_cycles,downsample_factor,mseq_upsampled1, mseq_up
 
     return th_1, th_2
 
+def read_actual_state(filepath="output.txt"):
+    try:
+        with open(filepath, "r") as file:
+            last_line = file.readlines()[-1].strip()
+            if len(last_line) == 2 and all(c in "01" for c in last_line):
+                return [int(last_line[0]), int(last_line[1])]
+            else:
+                return [0, 0]  # Fallback if line is malformed
+    except Exception as e:
+        print(f"Warning: Could not read actual state from file: {e}")
+        return [0, 0]
+
+def threshold_input_listener():
+    print("Threshold factor adjustment thread started.")
+    print("Enter new threshold factors as two numbers separated by space. Example: 3.2 1.9")
+    while True:
+        try:
+            user_input = input()
+            values = user_input.strip().split()
+            if len(values) != 2:
+                raise ValueError("Please enter exactly two values.")
+            val1, val2 = float(values[0]), float(values[1])
+            threshold_factors["seq1"] = max(0, val1)
+            threshold_factors["seq2"] = max(0, val2)
+            print(f"Updated threshold factors → seq1: {val1}, seq2: {val2}")
+        except Exception as e:
+            print(f"Invalid input. Use format like '3.5 2.1'. Error: {e}")
+
+def compute_accuracy(lst):
+    return round(100 * np.mean(lst), 1) if lst else 0
 
 ''' Variables '''
 
@@ -186,7 +267,7 @@ corr_array_second_seq=[0]
 corr_final_first_seq=[0]
 corr_final_second_seq=[0]
 
-th_1,th_2=calculate_threshold(sdr_rx,th_cycles,downsample_factor,mseq_upsampled1, mseq_upsampled2,M_up, threshold_factor_seq1, threshold_factor_seq2)
+th_1_base,th_2_base=calculate_threshold(sdr_rx,th_cycles,downsample_factor,mseq_upsampled1, mseq_upsampled2,M_up)
         
 
 window_size = 30 # int(num_reads * keep_percent)
@@ -196,9 +277,15 @@ t=[]
 corr_final_first_seq=[0]
 corr_final_second_seq=[0]
 
+N = 20  # last N measurements accuracy window
+lastN_RIS1, lastN_RIS2 = [], []
+history_RIS1, history_RIS2 = [], []
+
 if __name__ == "__main__":
    visualizer = BinaryStateVisualizer()
    try:
+    input_thread = threading.Thread(target=threshold_input_listener, daemon=True)
+    input_thread.start()
     for i in range(num_reads):
        
         if(len(corr_av_1)>averaging_factor):
@@ -219,10 +306,39 @@ if __name__ == "__main__":
         corr_av_1=np.append(corr_av_1, np.mean(corr_array_first_seq))
         corr_av_2=np.append(corr_av_2, np.mean(corr_array_second_seq))
 
-        RIS_1_state= np.abs((corr_av_1[-1:]>th_1)*1)
-        RIS_2_state= np.abs((corr_av_2[-1:]>th_2)*1)
+        # Compute dynamic thresholds
+        th_1 = threshold_factors["seq1"] * th_1_base
+        th_2 = threshold_factors["seq2"] * th_2_base
 
-        visualizer.update_states((int(RIS_1_state),int(RIS_2_state)))
+        RIS_1_state = int(corr_av_1[-1] > th_1)
+        RIS_2_state = int(corr_av_2[-1] > th_2)
+
+        actual_states = read_actual_state()
+        # Store match results
+        correct_RIS1 = int(RIS_1_state == actual_states[0])
+        correct_RIS2 = int(RIS_2_state == actual_states[1])
+
+        # Store history
+        history_RIS1.append(correct_RIS1)
+        history_RIS2.append(correct_RIS2)
+
+        # Keep rolling window for recent
+        lastN_RIS1.append(correct_RIS1)
+        lastN_RIS2.append(correct_RIS2)
+
+        if len(lastN_RIS1) > N:
+            lastN_RIS1.pop(0)
+            lastN_RIS2.pop(0)
+
+        acc_last_1 = compute_accuracy(lastN_RIS1)
+        acc_last_2 = compute_accuracy(lastN_RIS2)
+        acc_hist_1 = compute_accuracy(history_RIS1)
+        acc_hist_2 = compute_accuracy(history_RIS2)
+
+        acc_last_overall = round((acc_last_1 + acc_last_2) / 2, 1)
+        acc_hist_overall = round((acc_hist_1 + acc_hist_2) / 2, 1)
+
+        visualizer.update_states((int(RIS_1_state), int(RIS_2_state)),actual_states,(acc_last_1, acc_last_2, acc_last_overall, acc_hist_1, acc_hist_2, acc_hist_overall))
             
         if i>window_size:
             t=t[-window_size:]
@@ -234,7 +350,7 @@ if __name__ == "__main__":
         line2.set_data(t,corr_av_2)
         line3.set_data(t,[th_1]*len(corr_av_1))
         line4.set_data(t,[th_2]*len(corr_av_2))
-
+        bx.set_title(f"RIS Detection \n Threshold factors - 1: {threshold_factors['seq1']:.1f}, 2: {threshold_factors['seq2']:.1f}")
         bx.relim()
         bx.autoscale_view()
 
