@@ -5,6 +5,8 @@ import numpy as np
 from scipy.signal import correlate
 import threading
 from collections import deque
+import subprocess
+import re
 
 # These will be modified in real-time
 threshold_factors = {
@@ -19,7 +21,17 @@ class BinaryStateVisualizer:
         self.detected_states = [0, 0]
         self.actual_states = [0, 0]
 
-        self.fig, (self.ax_circles, self.ax_table) = plt.subplots(1, 2, figsize=(8, 4), gridspec_kw={'width_ratios': [2, 1]})
+        self.fig, (self.ax_logo, self.ax_circles, self.ax_table) = plt.subplots(1, 3, figsize=(10, 4), gridspec_kw={'width_ratios': [0.5, 2, 1.7]})
+
+        from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+        import matplotlib.image as mpimg
+
+        logo_img = mpimg.imread("logo.png")
+        imagebox = OffsetImage(logo_img, zoom=0.9)  # Adjust zoom here (e.g. 0.2 for smaller)
+
+        ab = AnnotationBbox(imagebox, (0.2, 0.8), frameon=False)  # Centered in ax_logo
+        self.ax_logo.add_artist(ab)
+        self.ax_logo.axis('off')
 
         # Circle centers: (x, y)
         centers = [(0, 1), (1, 1), (0, 0), (1, 0)]  # Row: Detected, Actual | Col: RIS 1, RIS 2
@@ -47,11 +59,20 @@ class BinaryStateVisualizer:
             loc='center',
             colLoc='center',
             cellLoc='center',
-            bbox=[0, 0.3, 1, 0.4]  # full table subplot
+            bbox=[-0.25, 0.15, 0.9, 0.4]  # full table subplot
         )
+
+        self.ax_table.text(
+            0.2, 0.9, "Detection accuracy",
+            ha='center', va='bottom', fontsize=13, fontweight='bold',
+            transform=self.ax_table.transAxes
+        )
+
+        self.fig.suptitle("RIS Detection and Identification", fontsize=16, fontweight='bold')
         self.ax_table.axis('off')
 
         self.fig.tight_layout()
+        self.fig.subplots_adjust(wspace=0.2)
         plt.ion()
         plt.show()
 
@@ -69,14 +90,14 @@ class BinaryStateVisualizer:
         # ⬇️ Clear old table and recreate
         self.table._cells.clear()
 
-        headers = ["", "RIS 1", "RIS 2", "Overall"]
+        headers = ["", "RIS 1", "RIS 2"]
         rows = [
-            ["Recent", f"{acc_last_1}%", f"{acc_last_2}%", f"{acc_last_overall}%"],
-            ["Historical", f"{acc_hist_1}%", f"{acc_hist_2}%", f"{acc_hist_overall}%"]
+            ["Instantaneous", f"{acc_last_1}%", f"{acc_last_2}%"],
+            ["Average", f"{acc_hist_1}%", f"{acc_hist_2}%"]
         ]
 
         for col_idx, text in enumerate(headers):
-            self.table.add_cell(-1, col_idx, width=0.3, height=0.2, text=text, loc='center', facecolor='#cccccc')
+            self.table.add_cell(-1, col_idx, width=0.4, height=0.17, text=text, loc='center', facecolor='#cccccc')
         
         # Bold header text
         for col_idx in range(len(headers)):
@@ -84,7 +105,7 @@ class BinaryStateVisualizer:
 
         for row_idx, row in enumerate(rows):
             for col_idx, text in enumerate(row):
-                self.table.add_cell(row_idx, col_idx, width=0.3, height=0.2, text=text, loc='center', facecolor='white')
+                self.table.add_cell(row_idx, col_idx, width=0.4, height=0.17, text=text, loc='center', facecolor='white')
 
         self.table.auto_set_font_size(False)
         self.table.set_fontsize(12)
@@ -180,6 +201,43 @@ def threshold_input_listener():
         except Exception as e:
             print(f"Invalid input. Use format like '3.5 2.1'. Error: {e}")
 
+def find_sdr_uris():
+    try:
+        import subprocess
+        import re
+
+        result = subprocess.run(["iio_info", "-s"], capture_output=True, text=True)
+        output = result.stdout
+
+        uri_tx = None
+        uri_rx = None
+
+        # Match lines like:
+        # serial=104473... [usb:1.10.5]
+        pattern = re.compile(r'serial=(\w+).*?\[(usb:[\d\.]+)\]')
+
+        for match in pattern.finditer(output):
+            serial = match.group(1)
+            uri = match.group(2)
+
+            print(f"Detected device → Serial: {serial}, URI: {uri}")
+
+            if serial.endswith("51"):
+                uri_tx = uri
+                print("Assigned as Tx")
+            elif serial.endswith("74"):
+                uri_rx = uri
+                print("Assigned as Rx")
+
+        if not uri_tx or not uri_rx:
+            raise RuntimeError(f"Could not find both required SDRs. Found TX={uri_tx}, RX={uri_rx}")
+
+        return uri_tx, uri_rx
+
+    except Exception as e:
+        print(f"Error during SDR URI detection: {e}")
+        raise
+
 def compute_accuracy(lst):
     return round(100 * np.mean(lst), 1) if lst else 0
 
@@ -204,8 +262,9 @@ num_reads=10000
 averaging_factor=5
 
 '''Create Radios'''
-sdr_tx = adi.ad9361(uri='usb:1.57.5')
-sdr_rx = adi.ad9361(uri='usb:1.55.5')
+uri_tx, uri_rx = find_sdr_uris()
+sdr_tx = adi.ad9361(uri=uri_tx)
+sdr_rx = adi.ad9361(uri=uri_rx)
 #sdr_tx=sdr_rx=adi.ad9361(uri='usb:1.5.5')
 sdr_tx.sample_rate = sdr_rx.sample_rate = int(samp_rate)
 sdr_tx.rx_rf_bandwidth = sdr_rx.rx_rf_bandwidth = int(3 * fc0)
@@ -350,7 +409,7 @@ if __name__ == "__main__":
         line2.set_data(t,corr_av_2)
         line3.set_data(t,[th_1]*len(corr_av_1))
         line4.set_data(t,[th_2]*len(corr_av_2))
-        bx.set_title(f"RIS Detection \n Threshold factors - 1: {threshold_factors['seq1']:.1f}, 2: {threshold_factors['seq2']:.1f}")
+        bx.set_title(f"Correlation peaks over time \n Threshold factors - 1: {threshold_factors['seq1']:.0f}, 2: {threshold_factors['seq2']:.0f}")
         bx.relim()
         bx.autoscale_view()
 
