@@ -34,7 +34,7 @@ class BinaryStateVisualizer:
         self.ax_logo.axis('off')
 
         # Circle centers: (x, y)
-        centers = [(0, 1), (1, 1), (0, 0), (1, 0)]  # Row: Detected, Actual | Col: RIS 1, RIS 2
+        centers = [(0, 1), (1, 1)]  # Only Detected row
         self.circles = [plt.Circle(center, 0.3, fc='red', edgecolor='black') for center in centers]
 
         for circle in self.circles:
@@ -46,7 +46,7 @@ class BinaryStateVisualizer:
 
         # Add row labels ("Detected", "Actual state")
         self.ax_circles.text(-0.6, 1, "Detected", ha='right', va='center', fontsize=12, fontweight='bold')
-        self.ax_circles.text(-0.6, 0, "Actual state", ha='right', va='center', fontsize=12, fontweight='bold')
+        #self.ax_circles.text(-0.6, 0, "Actual state", ha='right', va='center', fontsize=12, fontweight='bold')
 
         self.ax_circles.set_xlim(-1, 2)
         self.ax_circles.set_ylim(-0.5, 2)
@@ -81,8 +81,7 @@ class BinaryStateVisualizer:
         self.actual_states = actual_states
 
         for i in range(2):
-            self.circles[i].set_facecolor('green' if self.detected_states[i] else 'red')     # top row
-            self.circles[i + 2].set_facecolor('green' if self.actual_states[i] else 'red')   # bottom row
+            self.circles[i].set_facecolor('green' if self.detected_states[i] else 'red')
 
         # ⬇️ Unpack accuracy values
         acc_last_1, acc_last_2, acc_last_overall, acc_hist_1, acc_hist_2, acc_hist_overall = acc_values
