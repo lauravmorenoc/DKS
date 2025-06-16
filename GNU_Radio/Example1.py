@@ -6,7 +6,7 @@
 #
 # GNU Radio Python Flow Graph
 # Title: Not titled yet
-# GNU Radio version: 3.10.12.0
+# GNU Radio version: 3.10.10.0
 
 from PyQt5 import Qt
 from gnuradio import qtgui
@@ -23,7 +23,6 @@ from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
 from gnuradio import iio
 import sip
-import threading
 
 
 
@@ -50,7 +49,7 @@ class Example1(gr.top_block, Qt.QWidget):
         self.top_grid_layout = Qt.QGridLayout()
         self.top_layout.addLayout(self.top_grid_layout)
 
-        self.settings = Qt.QSettings("gnuradio/flowgraphs", "Example1")
+        self.settings = Qt.QSettings("GNU Radio", "Example1")
 
         try:
             geometry = self.settings.value("geometry")
@@ -58,13 +57,12 @@ class Example1(gr.top_block, Qt.QWidget):
                 self.restoreGeometry(geometry)
         except BaseException as exc:
             print(f"Qt GUI: Could not restore geometry: {str(exc)}", file=sys.stderr)
-        self.flowgraph_started = threading.Event()
 
         ##################################################
         # Variables
         ##################################################
         self.samp_rate = samp_rate = int(2.6e6)
-        self.USB = USB = "usb:1.37.5"
+        self.USB = USB = "usb:1.24.5"
         self.LOFreq = LOFreq = int(5.3e9)
         self.Atten = Atten = 0
 
@@ -100,8 +98,8 @@ class Example1(gr.top_block, Qt.QWidget):
         self.iio_pluto_source_0.set_gain_mode(0, 'manual')
         self.iio_pluto_source_0.set_gain(0, 0)
         self.iio_pluto_source_0.set_quadrature(True)
-        self.iio_pluto_source_0.set_rfdc(True)
-        self.iio_pluto_source_0.set_bbdc(True)
+        self.iio_pluto_source_0.set_rfdc(False)
+        self.iio_pluto_source_0.set_bbdc(False)
         self.iio_pluto_source_0.set_filter_params('Auto', '', 0, 0)
         self.iio_pluto_sink_0 = iio.fmcomms2_sink_fc32(USB if USB else iio.get_pluto_uri(), [True, True], 32768, True)
         self.iio_pluto_sink_0.set_len_tag_key('')
@@ -121,7 +119,7 @@ class Example1(gr.top_block, Qt.QWidget):
 
 
     def closeEvent(self, event):
-        self.settings = Qt.QSettings("gnuradio/flowgraphs", "Example1")
+        self.settings = Qt.QSettings("GNU Radio", "Example1")
         self.settings.setValue("geometry", self.saveGeometry())
         self.stop()
         self.wait()
@@ -170,7 +168,6 @@ def main(top_block_cls=Example1, options=None):
     tb = top_block_cls()
 
     tb.start()
-    tb.flowgraph_started.set()
 
     tb.show()
 

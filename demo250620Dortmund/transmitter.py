@@ -47,7 +47,7 @@ rx_mode = "manual"  # can be "manual" or "slow_attack"
 rx_gain = 0 # 0 to 50 dB
 tx_gain = 0
 fc0 = int(200e3)
-cycles=100000
+cycles=1000000
 
 '''Create Radios'''
 uri_tx = find_sdr_uris()
