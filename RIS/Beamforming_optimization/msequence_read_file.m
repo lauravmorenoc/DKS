@@ -39,7 +39,7 @@ mseq3_2=[1,1,0,1,1,1,0,0,0,1,0,1,1,1,0,1];
 mseq3_3=[0,0,1,1,0,1,1,1,0,0,1,1,0,0,0,0];
 
 mseq=mseq3_1;
-ris=ris_init('COM22', 115200);   % initialize RIS
+ris=ris_init('COM18', 115200);   % initialize RIS
 
 %ris_sequence(ris, high, low, mseq, period, duration, sleep_time)
 ris_sequence(ris, max_pow_pattern, min_pow_pattern, mseq, period, duration, sleep_time)

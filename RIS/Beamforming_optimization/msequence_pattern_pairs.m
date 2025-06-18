@@ -3,7 +3,7 @@ clear all;
 %% Parameters
 file_max = 'optimized_max_ris_pattern_hex.txt';
 file_min = 'optimized_min_ris_pattern_hex.txt';
-num_patterns = 6;  % total number of patterns per file
+num_patterns = 1;  % total number of patterns per file
 
 % Read max patterns
 fid_max = fopen(file_max, 'r');
@@ -26,7 +26,7 @@ end
 fclose(fid_min);
 
 %% Select pair
-pos = 6;  % <-- Choose value from 1 to 6
+pos = 1;  % <-- Choose value from 1 to 6
 
 max_pow_pattern = max_patterns{pos};
 min_pow_pattern = min_patterns{pos};
@@ -45,7 +45,7 @@ period=0.5e-3/200; % seconds
 duration=50; % seconds
 sleep_time=0;
 
-ris=ris_init('COM22', 115200);   % initialize RIS
+ris=ris_init('COM18', 115200);   % initialize RIS
 ris_sequence(ris, max_pow_pattern, min_pow_pattern, mseq, period, duration, sleep_time)
 
 

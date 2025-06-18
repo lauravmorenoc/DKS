@@ -8,7 +8,7 @@ from matplotlib.patches import Patch
 
 
 # ===================== USER PARAMETERS =====================
-ris_port = 'COM22'
+ris_port = 'COM18'
 baudrate = 115200
 reads_per_check = 3
 group_size = 16
@@ -21,6 +21,43 @@ NumSamples = 300000
 rx_gain = 0
 tx_gain = 0
 # ===========================================================
+
+def find_sdr_uris():
+    try:
+        import subprocess
+        import re
+
+        result = subprocess.run(["iio_info", "-s"], capture_output=True, text=True)
+        output = result.stdout
+
+        uri_tx = None
+        uri_rx = None
+
+        # Match lines like:
+        # serial=104473... [usb:1.10.5]
+        pattern = re.compile(r'serial=(\w+).*?\[(usb:[\d\.]+)\]')
+
+        for match in pattern.finditer(output):
+            serial = match.group(1)
+            uri = match.group(2)
+
+            print(f"Detected device → Serial: {serial}, URI: {uri}")
+
+            if serial.endswith("51"):
+                uri_tx = uri
+                print("Assigned as Tx")
+            elif serial.endswith("74"):
+                uri_rx = uri
+                print("Assigned as Rx")
+
+        if not uri_tx or not uri_rx:
+            raise RuntimeError(f"Could not find both required SDRs. Found TX={uri_tx}, RX={uri_rx}")
+
+        return uri_tx, uri_rx
+
+    except Exception as e:
+        print(f"Error during SDR URI detection: {e}")
+        raise
 
 
 def ris_init(port, baudrate):
@@ -68,9 +105,9 @@ state = [0] * (num_rows * num_cols)  # initial state: all OFF
 send_pattern(ris, generate_pattern(state))
 
 # Configure SDR
-sdr_tx = adi.ad9361(uri='usb:1.4.5')
-sdr_rx = adi.ad9361(uri='usb:1.6.5')
-#sdr_tx=sdr_rx=adi.ad9361(uri='usb:1.5.5')
+uri_tx, uri_rx = find_sdr_uris()
+sdr_tx = adi.ad9361(uri=uri_tx)
+sdr_rx = adi.ad9361(uri=uri_rx)
 sdr_tx.sample_rate = sdr_rx.sample_rate = int(sample_rate)
 sdr_tx.rx_rf_bandwidth = sdr_rx.rx_rf_bandwidth = int(3 * 0)
 sdr_tx.rx_lo = sdr_rx.rx_lo = int(rx_lo)
