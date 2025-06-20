@@ -43,13 +43,13 @@ def find_sdr_uris():
 
 # === Parameters ===
 samp_rate = 5.3e5
-tx_gain = 0
+tx_gain = -30
 NumSamples = 300000
 rx_lo = 5.3e9
 rx_mode = "manual"
 rx_gain = 0
 fc0 = int(200e3)
-downsample_factor = 180
+downsample_factor = 30
 averaging_factor = 5
 window_size = 20
 threshold_factor = 3

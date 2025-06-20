@@ -19,7 +19,7 @@ rx_lo = 5.3e9
 sample_rate = 5.3e5
 NumSamples = 300000
 rx_gain = 0
-tx_gain = -30
+tx_gain = 0
 # ===========================================================
 
 
@@ -47,17 +47,12 @@ def send_pattern(ris, pattern):
         return ris.readline().decode().strip()
     return None
 
-
-def measure_power(sdr_rx, NumSamples, reads_per_check):
+#Mod.
+def measure_power(sdr_rx, reads_per_check):
     powers = []
     for _ in range(reads_per_check):
         data = sdr_rx.rx()
         Rx_0 = data[0]
-        '''y = Rx_0 * np.hamming(NumSamples)
-        sp = np.abs(np.fft.fftshift(np.fft.fft(y)[1:-1]))
-        mag = np.abs(sp) / (np.sum(np.hamming(NumSamples)) / 2)
-        dbfs = 20 * np.log10(mag / (2**12))
-        peak_power = np.max(dbfs)'''
         peak_power = np.mean(np.abs( Rx_0 )**2)
         peak_power = 20 * np.log10(peak_power / (2**12))
         powers.append(peak_power)
@@ -136,7 +131,7 @@ group_side = int(np.sqrt(group_size))
 power_history = []
 
 # Initial power
-current_power = measure_power(sdr_rx, NumSamples, reads_per_check)
+current_power = measure_power(sdr_rx, reads_per_check)
 power_history.append(current_power)
 
 
@@ -159,7 +154,7 @@ for row in range(0, num_rows, group_side):
 
         # Send new pattern and measure power
         send_pattern(ris, generate_pattern(state))
-        new_power = measure_power(sdr_rx, NumSamples, reads_per_check)
+        new_power = measure_power(sdr_rx, reads_per_check)
 
         print(f"Old power: {current_power:.2f} dBFS, New power: {new_power:.2f} dBFS")
 
@@ -187,14 +182,15 @@ plt.grid()
 plt.show(block=False)
 
 # Saving in text file
-pos=0
+x = 1
+y = 1
 
 # Generate the pattern string
 hex_pattern = generate_pattern(state)
 
 # Format the full line to write
-line_to_write = f"{hex_pattern} [{pos}]\n"
-#line_to_write = f"{hex_pattern}\n"
+#line_to_write = f"{hex_pattern} [{x},{y}]\n"
+line_to_write = f"{hex_pattern}\n"
 
 # Append to file instead of overwriting
 with open("optimized_max_ris_pattern_hex.txt", "a") as f:  # 'a' = append mode
@@ -207,7 +203,7 @@ print('Minimizing now')
 power_history = []
 
 # Initial power
-current_power = measure_power(sdr_rx, NumSamples, reads_per_check)
+current_power = measure_power(sdr_rx, reads_per_check)
 power_history.append(current_power)
 
 # Get min power pattern
@@ -228,7 +224,7 @@ for row in range(0, num_rows, group_side):
 
         # Send new pattern and measure power
         send_pattern(ris, generate_pattern(state))
-        new_power = measure_power(sdr_rx, NumSamples, reads_per_check)
+        new_power = measure_power(sdr_rx, reads_per_check)
 
         print(f"Old power: {current_power:.2f} dBFS, New power: {new_power:.2f} dBFS")
 
@@ -257,7 +253,7 @@ plt.show()
 
 # Saving in text file
 hex_pattern = generate_pattern(state)
-line_to_write = f"{hex_pattern} [{pos}]\n"
+line_to_write = f"{hex_pattern} [{x},{y}]\n"
 with open("optimized_min_ris_pattern_hex.txt", "a") as f:  # 'a' = append mode
     f.write(line_to_write)
 
