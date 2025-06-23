@@ -70,7 +70,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '"usb:1.24.5"'
+    value: '"usb:1.7.5"'
   states:
     bus_sink: false
     bus_source: false
@@ -131,7 +131,7 @@ blocks:
     len_tag_key: ''
     samplerate: samp_rate
     type: fc32
-    uri: USB
+    uri: usb:1.8.5
   states:
     bus_sink: false
     bus_source: false
@@ -145,7 +145,7 @@ blocks:
     affinity: ''
     alias: ''
     bandwidth: '20000000'
-    bbdc: 'False'
+    bbdc: 'True'
     buffer_size: '32768'
     comment: ''
     filter: ''
@@ -159,7 +159,7 @@ blocks:
     maxoutbuf: '0'
     minoutbuf: '0'
     quadrature: 'True'
-    rfdc: 'False'
+    rfdc: 'True'
     samplerate: samp_rate
     type: fc32
     uri: USB

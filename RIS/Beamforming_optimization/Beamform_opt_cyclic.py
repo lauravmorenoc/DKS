@@ -6,10 +6,10 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 
 # ===================== USER PARAMETERS =====================
-ris_port = 'COM22'
+ris_port = 'COM18'
 baudrate = 115200
 reads_per_check = 3
-group_size = 16
+#   group_size = 16
 change_period = 1  # seconds
 num_rows = 16
 num_cols = 16
@@ -18,7 +18,10 @@ sample_rate = 2.6e6
 NumSamples = 300000
 rx_gain = 0
 tx_gain = 0
+group_len   = 8      # width of a stripe
+group_height = 1     # stripes are one-row tall
 # ===========================================================
+
 
 def ris_init(port, baudrate):
     ris = serial.Serial(port, baudrate, timeout=1)
@@ -53,29 +56,35 @@ def measure_power(sdr_rx, NumSamples, reads_per_check):
         powers.append(peak_power)
     return np.mean(powers)
 
-def optimize_ris(state, mode, ris, sdr_rx, generate_pattern, send_pattern, measure_power,
-                 group_side, num_rows, num_cols, change_period):
+def optimize_ris(state, mode, ris, sdr_rx,
+                 generate_pattern, send_pattern, measure_power,
+                 group_len, num_rows, num_cols, change_period):
+
     power_history = []
     current_power = measure_power(sdr_rx, NumSamples, reads_per_check)
     power_history.append(current_power)
 
-    for row in range(0, num_rows, group_side):
-        for col in range(0, num_cols, group_side):
-            indices = [(row + r) * num_cols + (col + c)
-                       for r in range(group_side) for c in range(group_side)]
+    # Walk every row (step = 1) ...
+    for row in range(num_rows):
+        # ... and split it into stripes of `group_len` columns (0-7, 8-15)
+        for col in range(0, num_cols, group_len):
+            indices = [row * num_cols + (col + offset)
+                       for offset in range(group_len)]
 
+            # ── Toggle the whole stripe ───────────────────────────────
             for idx in indices:
                 state[idx] ^= 1
 
             send_pattern(ris, generate_pattern(state))
             new_power = measure_power(sdr_rx, NumSamples, reads_per_check)
 
+            # keep change only if it helps (max or min mode)
             if (mode == "max" and new_power >= current_power) or \
                (mode == "min" and new_power <= current_power):
                 current_power = new_power
             else:
                 for idx in indices:
-                    state[idx] ^= 1
+                    state[idx] ^= 1    # revert
                 send_pattern(ris, generate_pattern(state))
 
             power_history.append(current_power)
@@ -100,7 +109,10 @@ def plot_all_patterns(pattern_list):
         ax.set_ylim(0, 16)
         ax.set_aspect('equal')
         ax.axis('off')
-        title = f"Pattern {idx+1} ({'Max' if idx % 2 == 0 else 'Min'})"
+        if   idx < 3: mode_lbl = "Max"
+        elif idx < 6: mode_lbl = "Min"
+        else: mode_lbl = "Max" if (idx - 6) % 2 == 0 else "Min"
+        title = f"Pattern {idx+1} ({mode_lbl})"
         ax.set_title(title, fontsize=10)
 
     legend_elements = [Patch(facecolor='red', edgecolor='black', label='State 1'),
@@ -115,8 +127,8 @@ ris = ris_init(ris_port, baudrate)
 state = [0] * (num_rows * num_cols)
 send_pattern(ris, generate_pattern(state))
 
-sdr_tx = adi.ad9361(uri='usb:1.4.5')
-sdr_rx = adi.ad9361(uri='usb:1.6.5')
+sdr_tx = adi.ad9361(uri='usb:1.8.5')
+sdr_rx = adi.ad9361(uri='usb:1.7.5')
 sdr_tx.sample_rate = sdr_rx.sample_rate = int(sample_rate)
 sdr_tx.rx_rf_bandwidth = sdr_rx.rx_rf_bandwidth = int(3 * 0)
 sdr_tx.rx_lo = sdr_rx.rx_lo = int(rx_lo)
@@ -136,29 +148,32 @@ samples = np.repeat(x_symbols, sps)
 samples_tx = samples * (2**14)
 sdr_tx.tx([samples_tx, samples_tx])
 
-group_side = int(np.sqrt(group_size))
+#group_side = int(np.sqrt(group_size))
 all_patterns = []
 
 # First: 3 maximizations
 for i in range(3):
     print(f"\n--- MAXIMIZATION PHASE {i+1} ---")
     state, pat = optimize_ris(state, "max", ris, sdr_rx, generate_pattern, send_pattern,
-                              measure_power, group_side, num_rows, num_cols, change_period)
+                              measure_power,  group_len, num_rows, num_cols, change_period)
     all_patterns.append(pat)
+
 
 # Then: 3 minimizations
 for i in range(3):
     print(f"\n--- MINIMIZATION PHASE {i+1} ---")
     state, pat = optimize_ris(state, "min", ris, sdr_rx, generate_pattern, send_pattern,
-                              measure_power, group_side, num_rows, num_cols, change_period)
+                              measure_power,  group_len, num_rows, num_cols, change_period)
     all_patterns.append(pat)
-
+'''
 # Then alternate 6 more times (3 max + 3 min interleaved)
 for i in range(6):
     mode = "max" if i % 2 == 0 else "min"
     print(f"\n--- ALTERNATING PHASE {i+1} ({mode.upper()}) ---")
     state, pat = optimize_ris(state, mode, ris, sdr_rx, generate_pattern, send_pattern,
-                              measure_power, group_side, num_rows, num_cols, change_period)
+                              measure_power,  group_len, num_rows, num_cols, change_period)
+    all_patterns.append(pat)'''
+for i in range(6):
     all_patterns.append(pat)
 
 plot_all_patterns(all_patterns)

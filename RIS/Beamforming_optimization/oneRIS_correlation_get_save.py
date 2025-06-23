@@ -41,9 +41,53 @@ def find_sdr_uris():
         print(f"Error during SDR URI detection: {e}")
         raise
 
+def save_corr_peaks(corr_peaks, path, pos, mode,
+                    max_pos=6, window_size=20):
+    """
+    (pos = 1‒6 , mode = 'Baseline' | 'Optimized')
+
+    Writes/overwrites the column ('Pos{pos}', mode) and keeps the file in the
+    2-row-header format shown in the screenshot.
+    """
+    assert 1 <= pos <= max_pos, "pos must be 1..6"
+    assert mode in ("Baseline", "Optimized")
+
+    # --- Build the full column structure we always want --------------------
+    first_level  = [f"Pos {p}" for p in range(1, max_pos + 1)]
+    second_level = ["Baseline", "Optimized"]
+    full_cols = pd.MultiIndex.from_product([first_level, second_level])
+
+    # --- Load or create DataFrame -----------------------------------------
+    if os.path.exists(path):
+        df = pd.read_csv(path, header=[0, 1])
+    else:
+        df = pd.DataFrame(columns=full_cols)
+
+    # Make sure *all* Pos/Modes are present (fill with NaNs if missing)
+    for col in full_cols:
+        if col not in df.columns:
+            df[col] = np.nan
+
+    # Make sure we have enough rows
+    if len(df) < window_size:
+        df = df.reindex(range(window_size))
+
+    # --- Insert / replace the data ----------------------------------------
+    df[(f"Pos {pos}", mode)] = np.asarray(corr_peaks)[:window_size]
+
+    # Keep the columns in canonical order
+    df = df[full_cols]
+
+    # --- Atomic write ------------------------------------------------------
+    tmp = path + ".tmp"
+    df.to_csv(tmp, index=False)
+    os.replace(tmp, path)
+    print(f"Saved → Pos {pos} / {mode}  in {path}")
+
+
 # === Parameters ===
 samp_rate = 5.3e5
-tx_gain = -30
+tx_gain = 0
 NumSamples = 300000
 rx_lo = 5.3e9
 rx_mode = "manual"
@@ -53,6 +97,10 @@ downsample_factor = 30
 averaging_factor = 5
 window_size = 20
 threshold_factor = 3
+
+pos  = 4              # 1 … 6
+mode = "Baseline"     # "Baseline"  or  "Optimized"
+
 
 # === m-sequence ===
 mseq = np.array([0,0,0,0,1,0,1,0,1,0,0,0,0,1,1,0])
@@ -112,21 +160,5 @@ for i in range(window_size):
 
 # === Save results to file ===
 csv_path = "correlation_peaks.csv"
-new_col_name = "Run_1"
-
-# If file exists, find the next available column name
-if os.path.exists(csv_path):
-    df = pd.read_csv(csv_path)
-    i = 1
-    while f"Run_{i}" in df.columns:
-        i += 1
-    new_col_name = f"Run_{i}"
-    # Make sure the DataFrame has enough rows
-    if len(df) < window_size:
-        df = df.reindex(range(window_size))
-    df[new_col_name] = corr_peaks
-else:
-    df = pd.DataFrame({new_col_name: corr_peaks})
-
-df.to_csv(csv_path, index=False)
+save_corr_peaks(corr_peaks, csv_path, pos, mode)
 print(f"Saved to: {csv_path}")

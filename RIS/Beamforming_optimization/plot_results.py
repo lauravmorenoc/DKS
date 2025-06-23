@@ -1,20 +1,34 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# === Load CSV File ===
-csv_path = "correlation_peaks.csv"  # Change to your file path if needed
-df = pd.read_csv(csv_path)
+# ------------------------------------------------------------
+csv_path = "correlation_peaks.csv"
+pos = 4                       # 1 … 6   ← change me
+# ------------------------------------------------------------
 
-# === Plot All Runs ===
-plt.figure(figsize=(10, 6))
+# ❶  Read the CSV that has a 2-row header (Pos / Mode)
+df = pd.read_csv(csv_path, header=[0, 1])
 
-for column in df.columns:
-    plt.plot(df.index, df[column], marker='o', label=column)
+# ❷  In case some rows are still empty NaNs (file was padded earlier)
+df = df.dropna(how="all")
 
-plt.title("Correlation Peaks Over Time")
+# ❸  Select the two columns that correspond to this position
+#     - MultiIndex key is ("Pos {n}",  "Baseline"/"Optimized")
+col_baseline  = (f"Pos {pos}", "Baseline")
+col_optimized = (f"Pos {pos}", "Optimized")
+
+# ❹  Plot
+plt.figure(figsize=(8, 5))
+
+if col_baseline in df.columns:
+    plt.plot(df.index, df[col_baseline], marker='o', label="Baseline")
+if col_optimized in df.columns:
+    plt.plot(df.index, df[col_optimized], marker='o', label="Optimized")
+
+plt.title(f"Correlation Peaks – Position {pos}")
 plt.xlabel("Measurement Index")
 plt.ylabel("Correlation Amplitude")
-plt.legend()
 plt.grid(True)
+plt.legend()
 plt.tight_layout()
 plt.show()

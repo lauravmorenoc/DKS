@@ -7,7 +7,7 @@ all_off='!0x0000000000000000000000000000000000000000000000000000000000000000';
 all_on='!0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF';
 high=all_off;
 low=all_on;
-num_patterns = 1;  % total number of patterns per file
+num_patterns = 6;  % total number of patterns per file
 
 % Read max patterns
 fid_max = fopen(file_max, 'r');
@@ -30,10 +30,10 @@ end
 fclose(fid_min);
 
 %% Select pair
-pos = 0;  % <-- Choose value from 1 to 6
+pos = 4;  % <-- Choose value from 1 to 6
 
-max_pow_pattern = max_patterns{1+pos}; % pos 0 is the basic measure
-min_pow_pattern = min_patterns{1+pos}; % pos 0 is the basic measure
+max_pow_pattern = max_patterns{pos}; % pos 0 is the basic measure
+min_pow_pattern = min_patterns{pos}; % pos 0 is the basic measure
 
 % Display selected patterns
 disp(['Selected Max pattern: ', max_pow_pattern]);
@@ -50,8 +50,8 @@ duration=50; % seconds
 sleep_time=0;
 
 ris=ris_init('COM18', 115200);   % initialize RIS
-ris_sequence(ris, max_pow_pattern, min_pow_pattern, mseq, period, duration, sleep_time) % Optimized
-%ris_sequence(ris, high, low, mseq, period, duration, sleep_time) % Baseline
+%ris_sequence(ris, max_pow_pattern, min_pow_pattern, mseq, period, duration, sleep_time) % Optimized
+ris_sequence(ris, high, low, mseq, period, duration, sleep_time) % Baseline
 
 
 
@@ -79,7 +79,6 @@ function ris = ris_init(port, baud)
         pause(0.1);
     end
 end
-
 
 function ris_sequence(ris, high, low, sequence, period, duration, sleep_time)
     time=0;

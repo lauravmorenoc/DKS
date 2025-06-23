@@ -4,7 +4,8 @@ import numpy as np
 import adi
 import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
-
+import os
+import re
 
 
 # ===================== USER PARAMETERS =====================
@@ -19,9 +20,12 @@ rx_lo = 5.3e9
 sample_rate = 5.3e5
 NumSamples = 300000
 rx_gain = 0
-tx_gain = -30
+tx_gain = 0
 # ===========================================================
 
+FILE_PATH_MAX = "optimized_max_ris_pattern_hex.txt"
+FILE_PATH_MIN = "optimized_min_ris_pattern_hex.txt"
+LINE_RE   = re.compile(r'^(.*)\s+\[(\d+)]\s*$')
 
 def ris_init(port, baudrate):
     ris = serial.Serial(port, baudrate, timeout=1)
@@ -46,6 +50,26 @@ def send_pattern(ris, pattern):
     if ris.in_waiting > 0:
         return ris.readline().decode().strip()
     return None
+
+
+def save_ris_pattern(pattern: str, pos: int, path: str):
+    """Add or replace a pattern at the given position and keep the file sorted."""
+    # ---- 1. Load what we already have ----------------------------------------
+    records = {}                         # {pos: pattern}
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            for line in f:
+                m = LINE_RE.match(line)
+                if m:
+                    records[int(m.group(2))] = m.group(1)
+
+    # ---- 2. Overwrite or append ---------------------------------------------
+    records[pos] = pattern               # overwrite if key already present
+
+    # ---- 3. Rewrite the whole file in order ---------------------------------
+    with open(path, "w", encoding="utf-8") as f:
+        for p in sorted(records):        # ascending order
+            f.write(f"{records[p]} [{p}]\n")
 
 
 def measure_power(sdr_rx, NumSamples, reads_per_check):
@@ -187,18 +211,9 @@ plt.grid()
 plt.show(block=False)
 
 # Saving in text file
-pos=0
-
-# Generate the pattern string
+pos = 4
 hex_pattern = generate_pattern(state)
-
-# Format the full line to write
-line_to_write = f"{hex_pattern} [{pos}]\n"
-#line_to_write = f"{hex_pattern}\n"
-
-# Append to file instead of overwriting
-with open("optimized_max_ris_pattern_hex.txt", "a") as f:  # 'a' = append mode
-    f.write(line_to_write)
+save_ris_pattern(hex_pattern, pos, FILE_PATH_MAX)
 
 
 # ============================= MINIMIZING =============================
@@ -257,8 +272,6 @@ plt.show()
 
 # Saving in text file
 hex_pattern = generate_pattern(state)
-line_to_write = f"{hex_pattern} [{pos}]\n"
-with open("optimized_min_ris_pattern_hex.txt", "a") as f:  # 'a' = append mode
-    f.write(line_to_write)
+save_ris_pattern(hex_pattern, pos, FILE_PATH_MIN)
 
 ris.close()
