@@ -6,8 +6,8 @@ stopFlag = false;                    % Always close the file
 %% === Configuration ===
 
 % These two lines must be updated with the correct COM ports before the demo
-ris1 = ris_init('COM19', 115200);    % <-- Set the correct COM port for RIS 1
-ris2 = ris_init('COM22', 115200);   % <-- Set the correct COM port for RIS 2
+ris1 = ris_init('COM18', 115200);    % <-- Set the correct COM port for RIS 1
+ris2 = ris_init('COM19', 115200);   % <-- Set the correct COM port for RIS 2
 
 % Control signals
 all_off = '!0x0000000000000000000000000000000000000000000000000000000000000000';

@@ -9,8 +9,8 @@ import re
 
 
 # ===================== USER PARAMETERS =====================
-ris_port = 'COM18'
-baudrate = 115200
+ris_ports = ['COM18', 'COM19']     # <-- both ports here
+baudrate  = 115200
 reads_per_check = 3
 #group_size = 16
 change_period= 1 # seconds
@@ -23,6 +23,8 @@ rx_gain = 30
 tx_gain = 0
 group_len   = 8      # width of a stripe
 group_height = 1     # stripes are one-row tall
+
+pos = 2 # 60°
 # ===========================================================
 
 FILE_PATH_MAX = "optimized_max_ris_pattern_hex.txt"
@@ -54,10 +56,15 @@ def send_pattern(ris, pattern):
     return None
 
 
-def save_ris_pattern(pattern: str, pos: int, path: str):
-    """Add or replace a pattern at the given position and keep the file sorted."""
-    # ---- 1. Load what we already have ----------------------------------------
-    records = {}                         # {pos: pattern}
+def send_all_patterns(ris_list, states):
+    """Generate and send the pattern for every board."""
+    for ris, st in zip(ris_list, states):
+        send_pattern(ris, generate_pattern(st))
+
+
+def save_ris_patterns(pattern_pair, pos, path):
+    """pattern_pair = (pat_A, pat_B)  →  '<patA> <patB> [pos]' """
+    records = {}
     if os.path.exists(path):
         with open(path, "r", encoding="utf-8") as f:
             for line in f:
@@ -65,12 +72,9 @@ def save_ris_pattern(pattern: str, pos: int, path: str):
                 if m:
                     records[int(m.group(2))] = m.group(1)
 
-    # ---- 2. Overwrite or append ---------------------------------------------
-    records[pos] = pattern               # overwrite if key already present
-
-    # ---- 3. Rewrite the whole file in order ---------------------------------
+    records[pos] = f"{pattern_pair[0]} {pattern_pair[1]}"
     with open(path, "w", encoding="utf-8") as f:
-        for p in sorted(records):        # ascending order
+        for p in sorted(records):
             f.write(f"{records[p]} [{p}]\n")
 
 
@@ -128,46 +132,49 @@ def find_sdr_uris():
         raise
 
 
-def optimize_ris(state, mode, ris, sdr_rx,
-                 generate_pattern, send_pattern, measure_power,
-                 group_len, num_rows, num_cols, change_period):
+def optimize_dual_ris(states, mode, ris_list, sdr_rx, *,       # named *
+                      generate_pattern, send_pattern, measure_power,
+                      group_len, num_rows, num_cols, change_period):
 
-    power_history = []
-    current_power = measure_power(sdr_rx, NumSamples, reads_per_check)
-    power_history.append(current_power)
+    power_hist = []
+    cur_power  = measure_power(sdr_rx, NumSamples, reads_per_check)
+    power_hist.append(cur_power)
 
-    # Walk every row (step = 1) ...
     for row in range(num_rows):
-        # ... and split it into stripes of `group_len` columns (0-7, 8-15)
         for col in range(0, num_cols, group_len):
-            indices = [row * num_cols + (col + offset)
-                       for offset in range(group_len)]
+            for board in (0, 1):                    # panel A then B
+                idxs = [row*num_cols + (col+off) for off in range(group_len)]
 
-            # ── Toggle the whole stripe ───────────────────────────────
-            for idx in indices:
-                state[idx] ^= 1
+                # toggle stripe on the chosen board
+                for i in idxs:
+                    states[board][i] ^= 1
 
-            send_pattern(ris, generate_pattern(state))
-            new_power = measure_power(sdr_rx, NumSamples, reads_per_check)
+                send_all_patterns(ris_list, states)
+                new_power = measure_power(sdr_rx, NumSamples, reads_per_check)
 
-            # keep change only if it helps (max or min mode)
-            if (mode == "max" and new_power >= current_power) or \
-               (mode == "min" and new_power <= current_power):
-                current_power = new_power
-            else:
-                for idx in indices:
-                    state[idx] ^= 1    # revert
-                send_pattern(ris, generate_pattern(state))
+                keep = ((mode == "max" and new_power >= cur_power) or
+                        (mode == "min" and new_power <= cur_power))
+                if keep:
+                    cur_power = new_power
+                else:                               # revert that stripe
+                    for i in idxs:
+                        states[board][i] ^= 1
+                    send_all_patterns(ris_list, states)
 
-            power_history.append(current_power)
-            time.sleep(change_period)
+                power_hist.append(cur_power)
+                time.sleep(change_period)
 
-    return state, generate_pattern(state), power_history
+    pat_A = generate_pattern(states[0])
+    pat_B = generate_pattern(states[1])
+    return states, (pat_A, pat_B), power_hist
+
+
 
 # ---- MAIN SCRIPT ----
-ris = ris_init(ris_port, baudrate)
-state = [0] * (num_rows * num_cols)  # initial state: all OFF
-send_pattern(ris, generate_pattern(state))
+ris_list = [ris_init(p, baudrate) for p in ris_ports]
+
+states = [[0]*(num_rows*num_cols) for _ in ris_list]  # [state_A, state_B]
+send_all_patterns(ris_list, states)
 
 # Configure SDR
 uri_tx, uri_rx = find_sdr_uris()
@@ -193,55 +200,59 @@ samples = np.repeat(x_symbols, sps)
 samples_tx = samples * (2**14)
 sdr_tx.tx([samples_tx, samples_tx])
 
-# Compute group top-left positions
-#group_side = int(np.sqrt(group_size))
-power_history = []
-
-# Initial power
-current_power = measure_power(sdr_rx, NumSamples, reads_per_check)
-power_history.append(current_power)
-
 
 # ============================= MAXIMIZING =============================
 
-state, pat, power_history = optimize_ris(state, "max", ris, sdr_rx, generate_pattern, send_pattern,
-                              measure_power,  group_len, num_rows, num_cols, change_period)
+print('Maximizing')
+states, pats, p_hist = optimize_dual_ris(states, "max", ris_list, sdr_rx,
+                                         generate_pattern=generate_pattern,
+                                         send_pattern=send_pattern,
+                                         measure_power=measure_power,
+                                         group_len=group_len,
+                                         num_rows=num_rows,
+                                         num_cols=num_cols,
+                                         change_period=change_period)
+
+save_ris_patterns(pats, pos, path=FILE_PATH_MAX)
 
 
 # Save or plot power history
 plt.figure()
-plt.plot(power_history, marker='o')
+plt.plot(p_hist, marker='o')
 plt.xlabel("Group index")
 plt.ylabel("Max Power (dBFS)")
 plt.title("Power evolution during RIS optimization")
 plt.grid()
 plt.show(block=False)
 
-# Saving in text file
-pos = 2 # 60°
-hex_pattern = generate_pattern(state)
-save_ris_pattern(hex_pattern, pos, FILE_PATH_MAX)
-
 
 # ============================= MINIMIZING =============================
 
 print('Minimizing now')
 
-# Get min power pattern
-state, pat, power_history = optimize_ris(state, "min", ris, sdr_rx, generate_pattern, send_pattern,
-                              measure_power,  group_len, num_rows, num_cols, change_period)
+states, pats, p_hist = optimize_dual_ris(states, "min", ris_list, sdr_rx,
+                                         generate_pattern=generate_pattern,
+                                         send_pattern=send_pattern,
+                                         measure_power=measure_power,
+                                         group_len=group_len,
+                                         num_rows=num_rows,
+                                         num_cols=num_cols,
+                                         change_period=change_period)
+
+save_ris_patterns(pats, pos, path=FILE_PATH_MIN)
 
 # Save or plot power history
 plt.figure()
-plt.plot(power_history, marker='o')
+plt.plot(p_hist, marker='o')
 plt.xlabel("Group index")
 plt.ylabel("Min Power (dBFS)")
 plt.title("Power evolution during RIS optimization")
 plt.grid()
 plt.show()
 
-# Saving in text file
-hex_pattern = generate_pattern(state)
-save_ris_pattern(hex_pattern, pos, FILE_PATH_MIN)
 
-ris.close()
+for ris in ris_list:     
+    try:
+        ris.close()
+    except Exception as e:
+        print(f"Couldn’t close {ris.port}: {e}")

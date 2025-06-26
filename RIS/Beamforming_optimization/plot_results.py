@@ -1,29 +1,32 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# ------------------------------------------------------------
-csv_path = "correlation_peaks.csv"
-pos = 4                       # 1 … 6   ← change me
-# ------------------------------------------------------------
+# ────────────────────────────────────────────────────────────────
+csv_path      = "correlation_peaks.csv"
+pos           = 2        # 1 … 6  ← which position to show
+include_noise = True     # ← set to False if you DON’T want the noise trace
+noise_pos     = 7        # column that holds the single "Noise" series
+# ────────────────────────────────────────────────────────────────
 
-# ❶  Read the CSV that has a 2-row header (Pos / Mode)
-df = pd.read_csv(csv_path, header=[0, 1])
+# 1) load CSV written with a 2-row header (first = Pos X, second = Baseline/Optimized/Noise)
+df = pd.read_csv(csv_path, header=[0, 1]).dropna(how="all")   # drop padding rows
 
-# ❷  In case some rows are still empty NaNs (file was padded earlier)
-df = df.dropna(how="all")
+# 2) build column keys
+col_baseline  = (f"Pos {pos}",   "Baseline")
+col_optimized = (f"Pos {pos}",   "Optimized")
+col_noise     = (f"Pos {noise_pos}", "Noise")                 # only one sub-header
 
-# ❸  Select the two columns that correspond to this position
-#     - MultiIndex key is ("Pos {n}",  "Baseline"/"Optimized")
-col_baseline  = (f"Pos {pos}", "Baseline")
-col_optimized = (f"Pos {pos}", "Optimized")
-
-# ❹  Plot
+# 3) plot
 plt.figure(figsize=(8, 5))
 
 if col_baseline in df.columns:
-    plt.plot(df.index, df[col_baseline], marker='o', label="Baseline")
+    plt.plot(df.index, df[col_baseline],   marker='o', label="Baseline")
 if col_optimized in df.columns:
-    plt.plot(df.index, df[col_optimized], marker='o', label="Optimized")
+    plt.plot(df.index, df[col_optimized],  marker='o', label="Optimized")
+
+if include_noise and col_noise in df.columns:
+    plt.plot(df.index, df[col_noise],
+             linestyle='--', marker='x', label="Noise (Pos 7)")
 
 plt.title(f"Correlation Peaks – Position {pos}")
 plt.xlabel("Measurement Index")

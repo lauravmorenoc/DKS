@@ -41,48 +41,45 @@ def find_sdr_uris():
         print(f"Error during SDR URI detection: {e}")
         raise
 
-def save_corr_peaks(corr_peaks, path, pos, mode,
-                    max_pos=6, window_size=20):
+def save_corr_peaks(corr_peaks, path, pos, mode, window_size,
+                    noise_pos=7, max_pos=7):
     """
-    (pos = 1‒6 , mode = 'Baseline' | 'Optimized')
-
-    Writes/overwrites the column ('Pos{pos}', mode) and keeps the file in the
-    2-row-header format shown in the screenshot.
+    pos ∈ 1..6  with mode 'Baseline' | 'Optimized'
+    pos = noise_pos (=7) with mode 'Noise'
     """
-    assert 1 <= pos <= max_pos, "pos must be 1..6"
-    assert mode in ("Baseline", "Optimized")
+    # ----------- guard rails -------------------------------------------------
+    if pos == noise_pos:
+        assert mode == "Noise",       "Position 7 only accepts mode='Noise'"
+    else:
+        assert 1 <= pos <  noise_pos, "pos must be 1-6 unless it's the noise pos"
+        assert mode in ("Baseline", "Optimized"), "pos 1-6 need Baseline/Optimized"
 
-    # --- Build the full column structure we always want --------------------
-    first_level  = [f"Pos {p}" for p in range(1, max_pos + 1)]
-    second_level = ["Baseline", "Optimized"]
-    full_cols = pd.MultiIndex.from_product([first_level, second_level])
+    # ----------- build *exactly* the columns we want -------------------------
+    cols = []
+    for p in range(1, max_pos + 1):
+        modes = ["Noise"] if p == noise_pos else ["Baseline", "Optimized"]
+        cols.extend([(f"Pos {p}", m) for m in modes])
+    full_cols = pd.MultiIndex.from_tuples(cols)
 
-    # --- Load or create DataFrame -----------------------------------------
+    # ----------- load or create the DataFrame --------------------------------
     if os.path.exists(path):
         df = pd.read_csv(path, header=[0, 1])
+        # keep only the columns we want, drop any old extras
+        df = df.reindex(columns=full_cols)
     else:
         df = pd.DataFrame(columns=full_cols)
 
-    # Make sure *all* Pos/Modes are present (fill with NaNs if missing)
-    for col in full_cols:
-        if col not in df.columns:
-            df[col] = np.nan
+    # ----------- resize to exactly window_size rows --------------------------
+    df = df.reindex(range(window_size))
 
-    # Make sure we have enough rows
-    if len(df) < window_size:
-        df = df.reindex(range(window_size))
-
-    # --- Insert / replace the data ----------------------------------------
+    # ----------- insert the new data ----------------------------------------
     df[(f"Pos {pos}", mode)] = np.asarray(corr_peaks)[:window_size]
 
-    # Keep the columns in canonical order
-    df = df[full_cols]
-
-    # --- Atomic write ------------------------------------------------------
+    # ----------- save atomically --------------------------------------------
     tmp = path + ".tmp"
     df.to_csv(tmp, index=False)
     os.replace(tmp, path)
-    print(f"Saved → Pos {pos} / {mode}  in {path}")
+    print(f"Saved  →  Pos {pos} / {mode}  ({len(corr_peaks)} samples)")
 
 
 # === Parameters ===
@@ -91,14 +88,14 @@ tx_gain = 0
 NumSamples = 300000
 rx_lo = 5.3e9
 rx_mode = "manual"
-rx_gain = 0
+rx_gain = 30
 fc0 = int(200e3)
 downsample_factor = 30
 averaging_factor = 5
-window_size = 20
+window_size = 50
 threshold_factor = 3
 
-pos  = 4              # 1 … 6
+pos  = 2              # 1 … 6 (7 for noise)
 mode = "Baseline"     # "Baseline"  or  "Optimized"
 
 
@@ -160,5 +157,5 @@ for i in range(window_size):
 
 # === Save results to file ===
 csv_path = "correlation_peaks.csv"
-save_corr_peaks(corr_peaks, csv_path, pos, mode)
+save_corr_peaks(corr_peaks, csv_path, pos, mode, window_size)
 print(f"Saved to: {csv_path}")

@@ -21,7 +21,7 @@ class BinaryStateVisualizer:
         self.detected_states = [0, 0]
         self.actual_states = [0, 0]
 
-        self.fig, (self.ax_logo, self.ax_circles, self.ax_table) = plt.subplots(1, 3, figsize=(10, 4), gridspec_kw={'width_ratios': [0.5, 2, 1.7]})
+        self.fig, (self.ax_logo, self.ax_circles) = plt.subplots(1, 2, figsize=(8, 4), gridspec_kw={'width_ratios': [0.5, 2]})
 
         from matplotlib.offsetbox import OffsetImage, AnnotationBbox
         import matplotlib.image as mpimg
@@ -53,23 +53,7 @@ class BinaryStateVisualizer:
         self.ax_circles.set_aspect('equal')
         self.ax_circles.axis('off')
 
-        self.table = self.ax_table.table(
-            cellText=[["", "", "", ""]],
-            colLabels=["", "", "", ""],
-            loc='center',
-            colLoc='center',
-            cellLoc='center',
-            bbox=[-0.25, 0.15, 0.9, 0.4]  # full table subplot
-        )
-
-        self.ax_table.text(
-            0.2, 0.9, "Detection accuracy",
-            ha='center', va='bottom', fontsize=13, fontweight='bold',
-            transform=self.ax_table.transAxes
-        )
-
         self.fig.suptitle("RIS Detection and Identification", fontsize=16, fontweight='bold')
-        self.ax_table.axis('off')
 
         self.fig.tight_layout()
         self.fig.subplots_adjust(wspace=0.2)
@@ -83,33 +67,6 @@ class BinaryStateVisualizer:
         for i in range(2):
             self.circles[i].set_facecolor('green' if self.detected_states[i] else 'red')
 
-        # ⬇️ Unpack accuracy values
-        acc_last_1, acc_last_2, acc_last_overall, acc_hist_1, acc_hist_2, acc_hist_overall = acc_values
-
-        # ⬇️ Clear old table and recreate
-        self.table._cells.clear()
-
-        headers = ["", "RIS 1", "RIS 2"]
-        rows = [
-            ["Instantaneous", f"{acc_last_1}%", f"{acc_last_2}%"],
-            ["Average", f"{acc_hist_1}%", f"{acc_hist_2}%"]
-        ]
-
-        for col_idx, text in enumerate(headers):
-            self.table.add_cell(-1, col_idx, width=0.4, height=0.17, text=text, loc='center', facecolor='#cccccc')
-        
-        # Bold header text
-        for col_idx in range(len(headers)):
-            self.table[-1, col_idx].get_text().set_fontweight('bold')
-
-        for row_idx, row in enumerate(rows):
-            for col_idx, text in enumerate(row):
-                self.table.add_cell(row_idx, col_idx, width=0.4, height=0.17, text=text, loc='center', facecolor='white')
-
-        self.table.auto_set_font_size(False)
-        self.table.set_fontsize(12)
-        self.table.scale(1.2, 1.5)
-
         self.fig.canvas.draw()
         plt.pause(0.1)
 
@@ -119,55 +76,38 @@ def calculate_threshold(sdr,th_cycles,downsample_factor,mseq_upsampled1, mseq_up
     corr_final_first_seq=[0]
     corr_final_second_seq=[0]
 
-    user_input = input("Initiate RIS 1 threshold process? Y/N ")
-    print(f"Answered: {user_input}")
-    if ((user_input=='Y')or(user_input=='y')):
-        print('Calculating RIS 1 threshold')
-        for j in range(th_cycles):
-            data = sdr.rx()
-            Rx = data[0]
-            Rx=Rx[::downsample_factor]
-            envelope=np.abs(Rx)/2**12
-            env_mean=np.mean(envelope)
-            envelope-=env_mean
-            envelope=envelope/np.max(envelope)
-            corr_array_first_seq=np.abs(correlate(mseq_upsampled1, envelope, mode='full'))/M_up # normalized
-            corr_final_first_seq=np.append(corr_final_first_seq, np.max(corr_array_first_seq))
-        th_1=np.mean(corr_final_first_seq[1:])
-        print('Threshold for RIS 1 found. TH1= ')
-        print(th_1)
-    elif ((user_input=='N')or(user_input=='n')):
-        print('Processed cancelled. Threshold for RIS 1 set to 0. Moving on.')
-        th_1=0
-    else:
-        print('Invalid answer. Threshold for RIS 1 set to 0. Moving on.')
-        th_1=0
+    print('Initiating theshold calculation process')
+    print('Calculating RIS 1 threshold')
+    for j in range(th_cycles):
+        data = sdr.rx()
+        Rx = data[0]
+        Rx=Rx[::downsample_factor]
+        envelope=np.abs(Rx)/2**12
+        env_mean=np.mean(envelope)
+        envelope-=env_mean
+        envelope=envelope/np.max(envelope)
+        corr_array_first_seq=np.abs(correlate(mseq_upsampled1, envelope, mode='full'))/M_up # normalized
+        corr_final_first_seq=np.append(corr_final_first_seq, np.max(corr_array_first_seq))
+    th_1=np.mean(corr_final_first_seq[1:])
+    print('Threshold for RIS 1 found. TH1= ')
+    print(th_1)
 
-    user_input = input("Initiate RIS 2 threshold process? Y/N ")
-    print(f"Answered: {user_input}")
-    if ((user_input=='Y')or(user_input=='y')):
-        print('Calculating RIS 2 threshold')
-        for j in range(th_cycles):
-            data = sdr.rx()
-            Rx = data[0]
-            Rx=Rx[::downsample_factor]
-            envelope=np.abs(Rx)/2**12
-            env_mean=np.mean(envelope)
-            envelope-=env_mean
-            envelope=envelope/np.max(envelope)
-            corr_array_second_seq=np.abs(correlate(mseq_upsampled2, envelope, mode='full'))/M_up # normalized
-            corr_final_second_seq=np.append(corr_final_second_seq, np.max(corr_array_second_seq))
-        th_2=np.mean(corr_final_second_seq[1:])
-        print('Threshold for RIS 2 found. TH2= ')
-        print(th_2)
-    elif ((user_input=='N')or(user_input=='n')):
-        print('Processed cancelled. Threshold for RIS 2 set to 0. Moving on.')
-        th_2=0
-    else:
-        print('Invalid answer. Threshold for RIS 2 set to 0. Moving on.')
-        th_2=0
+    print('Calculating RIS 2 threshold')
+    for j in range(th_cycles):
+        data = sdr.rx()
+        Rx = data[0]
+        Rx=Rx[::downsample_factor]
+        envelope=np.abs(Rx)/2**12
+        env_mean=np.mean(envelope)
+        envelope-=env_mean
+        envelope=envelope/np.max(envelope)
+        corr_array_second_seq=np.abs(correlate(mseq_upsampled2, envelope, mode='full'))/M_up # normalized
+        corr_final_second_seq=np.append(corr_final_second_seq, np.max(corr_array_second_seq))
+    th_2=np.mean(corr_final_second_seq[1:])
+    print('Threshold for RIS 2 found. TH2= ')
+    print(th_2)
     
-    user_input = input("Press any key and then enter to continue running code")
+    #user_input = input("Press any key and then enter to continue running code")
     print("Moving on")
 
     return th_1, th_2

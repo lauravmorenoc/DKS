@@ -30,7 +30,7 @@ end
 fclose(fid_min);
 
 %% Select pair
-pos = 4;  % <-- Choose value from 1 to 6
+pos = 2;  % <-- Choose value from 1 to 6
 
 max_pow_pattern = max_patterns{pos}; % pos 0 is the basic measure
 min_pow_pattern = min_patterns{pos}; % pos 0 is the basic measure
