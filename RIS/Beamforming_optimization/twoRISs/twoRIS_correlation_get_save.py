@@ -42,22 +42,22 @@ def find_sdr_uris():
         raise
 
 def save_corr_peaks(corr_peaks, path, pos, mode, window_size,
-                    noise_pos=7, max_pos=7):
+                    noise_pos=10, max_pos=10):
     """
     pos ∈ 1..6  with mode 'Baseline' | 'Optimized'
     pos = noise_pos (=7) with mode 'Noise'
     """
     # ----------- guard rails -------------------------------------------------
     if pos == noise_pos:
-        assert mode == "Noise",       "Position 7 only accepts mode='Noise'"
+        assert mode == "Noise",       "Position 10 only accepts mode='Noise'"
     else:
-        assert 1 <= pos <  noise_pos, "pos must be 1-6 unless it's the noise pos"
-        assert mode in ("Baseline", "Optimized"), "pos 1-6 need Baseline/Optimized"
+        assert 1 <= pos <  noise_pos, "pos must be 1-9 unless it's the noise pos"
+        assert mode in ("Baseline", "NewScheme"), "pos 1-9 need Baseline/Optimized"
 
     # ----------- build *exactly* the columns we want -------------------------
     cols = []
     for p in range(1, max_pos + 1):
-        modes = ["Noise"] if p == noise_pos else ["Baseline", "Optimized"]
+        modes = ["Noise"] if p == noise_pos else ["Baseline", "NewScheme"]
         cols.extend([(f"Pos {p}", m) for m in modes])
     full_cols = pd.MultiIndex.from_tuples(cols)
 
@@ -92,11 +92,11 @@ rx_gain = 30
 fc0 = int(200e3)
 downsample_factor = 30
 averaging_factor = 5
-window_size = 50
+window_size = 50 # number of measurements
 threshold_factor = 3
 
-pos  = 2              # 1 … 6 (7 for noise)
-mode = "Optimized"     # "Baseline"  or  "Optimized"
+pos  = 7              # 1 … 9 (10 for noise)
+mode = "NewScheme"     # "Baseline", "NewScheme" or "Noise"
 
 
 # === m-sequence ===
@@ -145,7 +145,7 @@ for i in range(window_size):
     Rx = Rx[::downsample_factor]
     envelope = np.abs(Rx) / 2**12
     envelope -= np.mean(envelope)
-    envelope /= np.max(envelope)
+    #envelope /= np.max(envelope)
     corr = np.max(np.abs(correlate(mseq_upsampled, envelope, mode='full')) / M_up)
 
     corr_array.append(corr)

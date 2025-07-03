@@ -21,10 +21,17 @@ sample_rate = 5.3e5
 NumSamples = 300000
 rx_gain = 30
 tx_gain = 0
-group_len   = 8      # width of a stripe
-group_height = 1     # stripes are one-row tall
+group_len   = 4      # width of a stripe
+group_height = 8    # stripes are one-row tall
 
-pos = 2 # 60°
+# 8 - 16 for all except for pos 1: 4-8; pos 6: 4-4; pos 7: 8-8, pos 9 4-8
+
+pos = 7
+# -60 -45 -30 -15   0 15 30 45 60
+#   1  2    3   4   5  6  7  8  9
+
+# 75 45 15 -15 45 75
+#  1  2  3   4  5  6
 # ===========================================================
 
 FILE_PATH_MAX = "optimized_max_ris_pattern_hex.txt"
@@ -89,7 +96,7 @@ def measure_power(sdr_rx, NumSamples, reads_per_check):
         dbfs = 20 * np.log10(mag / (2**12))
         peak_power = np.max(dbfs)'''
         peak_power = np.mean(np.abs( Rx_0 )**2)
-        peak_power = 20 * np.log10(peak_power / (2**12))
+        peak_power = 20 * np.log10(peak_power / (2**14))
         powers.append(peak_power)
     return np.mean(powers)
 
@@ -115,10 +122,10 @@ def find_sdr_uris():
 
             print(f"Detected device → Serial: {serial}, URI: {uri}")
 
-            if serial.endswith("51"):
+            if serial.endswith("0a"):
                 uri_tx = uri
                 print("Assigned as Tx")
-            elif serial.endswith("74"):
+            elif serial.endswith("9e"):
                 uri_rx = uri
                 print("Assigned as Rx")
 
@@ -132,31 +139,47 @@ def find_sdr_uris():
         raise
 
 
-def optimize_dual_ris(states, mode, ris_list, sdr_rx, *,       # named *
+def optimize_dual_ris(states, mode, ris_list, sdr_rx, *,
                       generate_pattern, send_pattern, measure_power,
-                      group_len, num_rows, num_cols, change_period):
+                      group_len, group_height, num_rows, num_cols, change_period):
 
+    print(f"\n=== OPTIMISATION START  ({mode.upper()})  ===")
     power_hist = []
     cur_power  = measure_power(sdr_rx, NumSamples, reads_per_check)
     power_hist.append(cur_power)
+    print(f"Initial power: {cur_power:.2f} dBFS")
 
-    for row in range(num_rows):
+    # walk the array tile-by-tile
+    for row in range(0, num_rows, group_height):
         for col in range(0, num_cols, group_len):
-            for board in (0, 1):                    # panel A then B
-                idxs = [row*num_cols + (col+off) for off in range(group_len)]
+            for board in (0, 1):          # 0 = COM18, 1 = COM19
+                #print(f"\n▶ Board {board} – checking group at "
+                     # f"rows {row}-{row+group_height-1}, "
+                      #f"cols {col}-{col+group_len-1}")
 
-                # toggle stripe on the chosen board
+                # indices for this tile
+                idxs = [ (row + r) * num_cols + (col + c)
+                         for r in range(group_height)
+                         for c in range(group_len) ]
+
+                # flip whole tile
                 for i in idxs:
                     states[board][i] ^= 1
 
                 send_all_patterns(ris_list, states)
                 new_power = measure_power(sdr_rx, NumSamples, reads_per_check)
 
+                #print(f"    Old: {cur_power:.2f} dBFS → "
+                      #f"New: {new_power:.2f} dBFS", end="  ")
+
                 keep = ((mode == "max" and new_power >= cur_power) or
                         (mode == "min" and new_power <= cur_power))
+
                 if keep:
+                   # print("✔ kept")
                     cur_power = new_power
-                else:                               # revert that stripe
+                else:
+                   # print("✘ reverted")
                     for i in idxs:
                         states[board][i] ^= 1
                     send_all_patterns(ris_list, states)
@@ -166,8 +189,8 @@ def optimize_dual_ris(states, mode, ris_list, sdr_rx, *,       # named *
 
     pat_A = generate_pattern(states[0])
     pat_B = generate_pattern(states[1])
+    print(f"\n=== OPTIMISATION END  ({mode.upper()})  ===\n")
     return states, (pat_A, pat_B), power_hist
-
 
 
 # ---- MAIN SCRIPT ----
@@ -181,12 +204,12 @@ uri_tx, uri_rx = find_sdr_uris()
 sdr_tx = adi.ad9361(uri=uri_tx)
 sdr_rx = adi.ad9361(uri=uri_rx)
 sdr_tx.sample_rate = sdr_rx.sample_rate = int(sample_rate)
-sdr_tx.rx_rf_bandwidth = sdr_rx.rx_rf_bandwidth = int(3 * 0)
+sdr_tx.rx_rf_bandwidth = sdr_rx.rx_rf_bandwidth = int(3 * 200e3)
 sdr_tx.rx_lo = sdr_rx.rx_lo = int(rx_lo)
 sdr_tx.gain_control_mode = sdr_rx.gain_control_mode = "manual"
 sdr_tx.rx_hardwaregain_chan0 = sdr_rx.rx_hardwaregain_chan0 = rx_gain
 sdr_tx.rx_buffer_size = sdr_rx.rx_buffer_size = NumSamples
-sdr_tx.tx_rf_bandwidth = int(3 * 0)
+sdr_tx.tx_rf_bandwidth = int(3 * 200e3)
 sdr_tx.tx_lo = int(rx_lo)
 sdr_tx.tx_cyclic_buffer = True
 sdr_tx.tx_hardwaregain_chan0 = tx_gain
@@ -203,12 +226,13 @@ sdr_tx.tx([samples_tx, samples_tx])
 
 # ============================= MAXIMIZING =============================
 
-print('Maximizing')
+#print('Maximizing')
 states, pats, p_hist = optimize_dual_ris(states, "max", ris_list, sdr_rx,
                                          generate_pattern=generate_pattern,
                                          send_pattern=send_pattern,
                                          measure_power=measure_power,
                                          group_len=group_len,
+                                         group_height=group_height,
                                          num_rows=num_rows,
                                          num_cols=num_cols,
                                          change_period=change_period)
@@ -228,13 +252,16 @@ plt.show(block=False)
 
 # ============================= MINIMIZING =============================
 
-print('Minimizing now')
+#print('Minimizing now')
+states = [[0]*(num_rows*num_cols) for _ in ris_list]  # [state_A, state_B]
+send_all_patterns(ris_list, states)
 
 states, pats, p_hist = optimize_dual_ris(states, "min", ris_list, sdr_rx,
                                          generate_pattern=generate_pattern,
                                          send_pattern=send_pattern,
                                          measure_power=measure_power,
                                          group_len=group_len,
+                                         group_height=group_height,
                                          num_rows=num_rows,
                                          num_cols=num_cols,
                                          change_period=change_period)

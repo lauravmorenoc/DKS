@@ -70,7 +70,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '"usb:1.7.5"'
+    value: '"usb:1.9.5"'
   states:
     bus_sink: false
     bus_source: false

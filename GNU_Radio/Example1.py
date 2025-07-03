@@ -62,7 +62,7 @@ class Example1(gr.top_block, Qt.QWidget):
         # Variables
         ##################################################
         self.samp_rate = samp_rate = int(2.6e6)
-        self.USB = USB = "usb:1.7.5"
+        self.USB = USB = "usb:1.9.5"
         self.LOFreq = LOFreq = int(5.3e9)
         self.Atten = Atten = 0
 

@@ -4,43 +4,6 @@ from scipy.signal import correlate
 import os
 import pandas as pd
 
-def find_sdr_uris():
-    try:
-        import subprocess
-        import re
-
-        result = subprocess.run(["iio_info", "-s"], capture_output=True, text=True)
-        output = result.stdout
-
-        uri_tx = None
-        uri_rx = None
-
-        # Match lines like:
-        # serial=104473... [usb:1.10.5]
-        pattern = re.compile(r'serial=(\w+).*?\[(usb:[\d\.]+)\]')
-
-        for match in pattern.finditer(output):
-            serial = match.group(1)
-            uri = match.group(2)
-
-            print(f"Detected device → Serial: {serial}, URI: {uri}")
-
-            if serial.endswith("0a"):
-                uri_tx = uri
-                print("Assigned as Tx")
-            elif serial.endswith("9e"):
-                uri_rx = uri
-                print("Assigned as Rx")
-
-        if not uri_tx or not uri_rx:
-            raise RuntimeError(f"Could not find both required SDRs. Found TX={uri_tx}, RX={uri_rx}")
-
-        return uri_tx, uri_rx
-
-    except Exception as e:
-        print(f"Error during SDR URI detection: {e}")
-        raise
-
 def save_corr_peaks(corr_peaks, path, pos, mode, window_size,
                     noise_pos=7, max_pos=7):
     """
@@ -81,6 +44,49 @@ def save_corr_peaks(corr_peaks, path, pos, mode, window_size,
     os.replace(tmp, path)
     print(f"Saved  →  Pos {pos} / {mode}  ({len(corr_peaks)} samples)")
 
+def find_sdr_uris():
+    try:
+        import subprocess
+        import re
+
+        result = subprocess.run(["iio_info", "-s"], capture_output=True, text=True)
+        output = result.stdout
+
+        uri_tx = None
+        uri_rx = None
+
+        # Match lines like:
+        # serial=104473... [usb:1.10.5]
+        pattern = re.compile(r'serial=(\w+).*?\[(usb:[\d\.]+)\]')
+
+        for match in pattern.finditer(output):
+            serial = match.group(1)
+            uri = match.group(2)
+
+            print(f"Detected device → Serial: {serial}, URI: {uri}")
+
+            if serial.endswith("0a"):
+                uri_tx = uri
+                print("Assigned as Tx")
+            elif serial.endswith("9e"):
+                uri_rx = uri
+                print("Assigned as Rx")
+
+        if not uri_tx or not uri_rx:
+            raise RuntimeError(f"Could not find both required SDRs. Found TX={uri_tx}, RX={uri_rx}")
+
+        return uri_tx, uri_rx
+
+    except Exception as e:
+        print(f"Error during SDR URI detection: {e}")
+        raise
+
+
+#csv_path = "correlation_baseline.csv"
+#csv_path = "correlation_newscheme.csv"
+csv_path = "correlation_peaks.csv"
+#mode = "Optimized"
+mode = "Baseline"
 
 # === Parameters ===
 samp_rate = 5.3e5
@@ -92,12 +98,10 @@ rx_gain = 30
 fc0 = int(200e3)
 downsample_factor = 30
 averaging_factor = 5
-window_size = 50
+window_size = 10 # number of measurements
 threshold_factor = 3
 
-pos  = 2              # 1 … 6 (7 for noise)
-mode = "Optimized"     # "Baseline"  or  "Optimized"
-
+pos  = 4             # 1 … 6 (7 for noise)
 
 # === m-sequence ===
 mseq = np.array([0,0,0,0,1,0,1,0,1,0,0,0,0,1,1,0])
@@ -145,8 +149,9 @@ for i in range(window_size):
     Rx = Rx[::downsample_factor]
     envelope = np.abs(Rx) / 2**12
     envelope -= np.mean(envelope)
-    envelope /= np.max(envelope)
+    #envelope /= np.max(envelope)
     corr = np.max(np.abs(correlate(mseq_upsampled, envelope, mode='full')) / M_up)
+    
 
     corr_array.append(corr)
     if len(corr_array) > averaging_factor:
@@ -156,6 +161,12 @@ for i in range(window_size):
     corr_peaks.append(avg_corr)
 
 # === Save results to file ===
-csv_path = "correlation_peaks.csv"
-save_corr_peaks(corr_peaks, csv_path, pos, mode, window_size)
-print(f"Saved to: {csv_path}")
+
+save_corr_peaks(corr_peaks, csv_path, pos, mode, window_size,
+                    noise_pos=7, max_pos=7)
+
+
+    
+#df = pd.DataFrame(corr_peaks)        # one unnamed column
+#df.to_csv(csv_path, index=False)
+print(f"{len(corr_peaks)} correlation-peaks written to {csv_path}")
