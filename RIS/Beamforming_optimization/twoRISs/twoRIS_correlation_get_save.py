@@ -95,8 +95,8 @@ averaging_factor = 5
 window_size = 50 # number of measurements
 threshold_factor = 3
 
-pos  = 7              # 1 … 9 (10 for noise)
-mode = "NewScheme"     # "Baseline", "NewScheme" or "Noise"
+pos  = 5              # 1 … 9 (10 for noise)
+mode = "Baseline"     # "Baseline", "NewScheme" or "Noise"
 
 
 # === m-sequence ===

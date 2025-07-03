@@ -1,4 +1,6 @@
 import serial, time, re, numpy as np, adi, matplotlib.pyplot as plt
+import pandas as pd
+out_file = f"delta_power_cyclic.csv"
 
 # ───────────── user settings ────────────────────────────────────
 pos          = 7                # which line (1-9) to use
@@ -118,9 +120,12 @@ plt.ion(); fig,ax = plt.subplots()
 x_b, x_o = [], []
 d_b, d_o = [], []
 i_mode=0; cycle=0
+counter=0
+max_counter=6
+
 
 try:
-    while True:
+    while True and counter<max_counter:
         high, low = modes[i_mode]          # strings
         pats_hi = high.split() if ' ' in high else [high, high]
         pats_lo = low.split()  if ' ' in low  else [low,  low]
@@ -147,6 +152,7 @@ try:
         ax.plot(x_o,d_o,'g.-',label='optimised')
         ax.set_xlabel("Sample"); ax.set_ylabel("Power (dBFS)")
         ax.legend(); ax.grid(True); plt.pause(0.1)
+        counter+=1
 
         i_mode ^= 1; cycle += cycles_per_mode
 
@@ -154,4 +160,16 @@ except KeyboardInterrupt:
     pass
 
 plt.ioff(); plt.show()
+
+max_len = max(len(d_b), len(d_o))
+baseline   = d_b + [np.nan]*(max_len - len(d_b))
+optimised  = d_o + [np.nan]*(max_len - len(d_o))
+
+pd.DataFrame({
+    "baseline" : baseline,
+    "optimised": optimised
+}).to_csv(out_file, index=False)
+
+print(f"\nΔ-power traces saved to →  {out_file}")
+
 for h in ris_list: h.close()

@@ -62,7 +62,7 @@ class Example1(gr.top_block, Qt.QWidget):
         # Variables
         ##################################################
         self.samp_rate = samp_rate = int(2.6e6)
-        self.USB = USB = "usb:1.9.5"
+        self.USB = USB = "usb:1.8.5"
         self.LOFreq = LOFreq = int(5.3e9)
         self.Atten = Atten = 0
 
@@ -101,7 +101,7 @@ class Example1(gr.top_block, Qt.QWidget):
         self.iio_pluto_source_0.set_rfdc(True)
         self.iio_pluto_source_0.set_bbdc(True)
         self.iio_pluto_source_0.set_filter_params('Auto', '', 0, 0)
-        self.iio_pluto_sink_0 = iio.fmcomms2_sink_fc32('usb:1.8.5' if 'usb:1.8.5' else iio.get_pluto_uri(), [True, True], 32768, True)
+        self.iio_pluto_sink_0 = iio.fmcomms2_sink_fc32('usb:1.9.5' if 'usb:1.9.5' else iio.get_pluto_uri(), [True, True], 32768, True)
         self.iio_pluto_sink_0.set_len_tag_key('')
         self.iio_pluto_sink_0.set_bandwidth(20000000)
         self.iio_pluto_sink_0.set_frequency(LOFreq)

@@ -9,7 +9,7 @@ all_off = '!0x0000000000000000000000000000000000000000000000000000000000000000';
 all_on  = '!0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF';
 
 num_patterns = 9;          % lines per file = positions 1 … 6
-pos          = 7;          % CHOOSE position you want (1…6)
+pos          = 5;          % CHOOSE position you want (1…6)
 new_scheme = false;      % <-- false ⇒ run baseline (all_off / all_on)
 
 

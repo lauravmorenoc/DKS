@@ -22,11 +22,11 @@ NumSamples = 300000
 rx_gain = 30
 tx_gain = 0
 group_len   = 4      # width of a stripe
-group_height = 8    # stripes are one-row tall
+group_height = 4    # stripes are one-row tall
 
 # 8 - 16 for all except for pos 1: 4-8; pos 6: 4-4; pos 7: 8-8, pos 9 4-8
 
-pos = 7
+pos = 5
 # -60 -45 -30 -15   0 15 30 45 60
 #   1  2    3   4   5  6  7  8  9
 

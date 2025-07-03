@@ -4,7 +4,7 @@ import numpy as np
 
 # ────────────────────────────────────────────────────────────────
 csv_path      = "correlation_peaks.csv"
-pos           = 3       # 1 … 6  ← which position to show
+pos           = 5       # 1 … 9  ← which position to show
 include_noise = True     # ← set to False if you DON’T want the noise trace
 noise_pos     = 10        # column that holds the single "Noise" series
 # ────────────────────────────────────────────────────────────────
